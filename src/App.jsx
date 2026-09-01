@@ -316,45 +316,72 @@ function App() {
     };
   }, [sessionId]);
 
-  // Fetch live Roblox player count & stats with auth headers & no-cache
+  // Fetch live Roblox player count & stats
   useEffect(() => {
     let isMounted = true;
+    const UNIVERSE_ID = '9100306231';
 
     const fetchPlayerCount = async () => {
       try {
-        const response = await fetch(
-          `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
-          {
-            method: 'GET',
-            cache: 'no-store',
-            headers: {
-              'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-              'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-              'Pragma': 'no-cache',
-              'Cache-Control': 'no-cache, no-store, must-revalidate'
+        // Try Supabase Edge Function first
+        let data = null;
+        try {
+          const response = await fetch(
+            `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
+            {
+              method: 'GET',
+              cache: 'no-store',
+              headers: {
+                'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+              }
             }
+          );
+          if (response.ok) {
+            data = await response.json();
           }
-        );
+        } catch {
+          // Edge function failed, will try fallback
+        }
 
-        if (response.ok) {
-          const data = await response.json();
-          if (isMounted && data) {
-            if (typeof data.playerCount === 'number') {
-              setLivePlayerCount(data.playerCount);
-            } else if (typeof data.playing === 'number') {
-              setLivePlayerCount(data.playing);
-            }
-            if (typeof data.visits === 'number' && data.visits > 0) {
-              setLiveVisits(data.visits);
-            }
-            if (typeof data.likes === 'number' && data.likes > 0) {
-              setLiveLikes(data.likes);
-            } else if (typeof data.upVotes === 'number' && data.upVotes > 0) {
-              setLiveLikes(data.upVotes);
-            }
-            if (typeof data.favoritedCount === 'number' && data.favoritedCount > 0) {
-              setLiveFavorites(data.favoritedCount);
-            }
+        // Fallback: fetch Roblox API directly via proxy
+        if (!data || (!data.playerCount && !data.playing)) {
+          const proxyBase = 'https://corsproxy.io/?url=';
+          const [gamesRes, votesRes] = await Promise.all([
+            fetch(`${proxyBase}${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}&_nc=${Date.now()}`)}`, { cache: 'no-store' }),
+            fetch(`${proxyBase}${encodeURIComponent(`https://games.roblox.com/v1/games/${UNIVERSE_ID}/votes?_nc=${Date.now()}`)}`, { cache: 'no-store' })
+          ]);
+
+          const gamesData = gamesRes.ok ? await gamesRes.json() : {};
+          const votesData = votesRes.ok ? await votesRes.json() : {};
+          const game = gamesData.data?.[0] || {};
+
+          data = {
+            playing: game.playing ?? 0,
+            visits: game.visits ?? 0,
+            likes: votesData.upVotes ?? votesData.upvotes ?? 0,
+            favoritedCount: game.favoritedCount ?? 0
+          };
+        }
+
+        if (isMounted && data) {
+          if (typeof data.playerCount === 'number') {
+            setLivePlayerCount(data.playerCount);
+          } else if (typeof data.playing === 'number') {
+            setLivePlayerCount(data.playing);
+          }
+          if (typeof data.visits === 'number' && data.visits > 0) {
+            setLiveVisits(data.visits);
+          }
+          if (typeof data.likes === 'number' && data.likes > 0) {
+            setLiveLikes(data.likes);
+          } else if (typeof data.upVotes === 'number' && data.upVotes > 0) {
+            setLiveLikes(data.upVotes);
+          }
+          if (typeof data.favoritedCount === 'number' && data.favoritedCount > 0) {
+            setLiveFavorites(data.favoritedCount);
           }
         }
       } catch (err) {
