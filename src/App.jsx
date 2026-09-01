@@ -12,6 +12,7 @@ function App() {
 
   const [liveUsers, setLiveUsers] = useState(0);
   const [livePlayerCount, setLivePlayerCount] = useState(0);
+  const [liveVisits, setLiveVisits] = useState(0);
   const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Load posts from Supabase and subscribe to real-time updates
@@ -104,17 +105,13 @@ function App() {
       try {
         const response = await fetch(
           'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/get-roblox-stats',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
+          { method: 'GET' }
         );
 
         if (response.ok) {
           const data = await response.json();
           setLivePlayerCount(data.playerCount || 0);
+          setLiveVisits(data.visits || 0);
         }
       } catch (error) {
         console.error('Error fetching player count:', error);
@@ -130,6 +127,7 @@ function App() {
   }, []);
 
   const [selectedChannel, setSelectedChannel] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [userName, setUserName] = useState("");
   const [postImage, setPostImage] = useState(null);
@@ -154,7 +152,7 @@ function App() {
   const getTimeAgo = (date) => {
     const now = new Date();
     const seconds = Math.floor((now - date) / 1000);
-    
+
     if (seconds < 60) return "just now";
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
@@ -228,7 +226,7 @@ function App() {
 
     const now = Date.now();
     const lastPost = lastPostTime[selectedChannel] || 0;
-    
+
     if (now - lastPost < SPAM_COOLDOWN) {
       setError("Please wait a moment before posting again");
       return false;
@@ -292,7 +290,7 @@ function App() {
       setForumPosts({
         ...forumPosts,
         [channelKey]: forumPosts[channelKey].map(p =>
-          p.id === postId 
+          p.id === postId
             ? { ...p, likes: newLikes, liked: !p.liked }
             : p
         )
@@ -321,7 +319,27 @@ function App() {
           <a href="#feedback">Feedback</a>
         </div>
 
-        <a className="play-button" href="https://www.roblox.com/" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
+        <button
+          className={`hamburger ${menuOpen ? "open" : ""}`}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
+          <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
+          <a href="#updates" onClick={() => setMenuOpen(false)}>Updates</a>
+          <a href="#suggestions" onClick={() => setMenuOpen(false)}>Suggestions</a>
+          <a href="#songs" onClick={() => setMenuOpen(false)}>Songs</a>
+          <a href="#feedback" onClick={() => setMenuOpen(false)}>Feedback</a>
+          <a className="play-button" href="https://www.roblox.com/games/105872949117236/Are-You-Malayali" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
+        </div>
+
+        <a className="play-button desktop-play" href="https://www.roblox.com/" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
       </nav>
 
       <main>
@@ -379,6 +397,11 @@ function App() {
               <div>
                 <strong>🎮 {livePlayerCount}</strong>
                 <span>Playing Now</span>
+              </div>
+
+              <div>
+                <strong>👣 {liveVisits.toLocaleString()}</strong>
+                <span>Visits</span>
               </div>
             </div>
           </div>

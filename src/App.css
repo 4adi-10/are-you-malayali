@@ -8,21 +8,34 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: "Inter", sans-serif;
   background: linear-gradient(180deg, #03120a 0%, #061b10 60%);
   color: #e8ffee;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(30, 200, 120, 0.3);
+}
+
+img {
+  max-width: 100%;
 }
 
 button,
 a {
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .app {
@@ -125,6 +138,78 @@ button {
   box-shadow: 0 14px 45px rgba(10,150,90,0.16);
 }
 
+/* HAMBURGER + MOBILE MENU */
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.hamburger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  background: #9bf9bb;
+  transition: 0.25s ease;
+}
+
+.hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  padding: 14px 20px 20px;
+  gap: 4px;
+  background: rgba(5, 13, 9, 0.97);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(30, 160, 100, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-menu a {
+  color: #cfefe0;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 10px;
+  border-radius: 10px;
+  transition: 0.2s;
+}
+
+.mobile-menu a:hover,
+.mobile-menu a:active {
+  color: #7efeb7;
+  background: rgba(30, 160, 100, 0.08);
+}
+
+.mobile-menu .play-button {
+  margin-top: 10px;
+  text-align: center;
+}
+
 /* HERO */
 
 .hero {
@@ -188,9 +273,9 @@ button {
 .hero h1 {
   max-width: 720px;
   font-family: "Outfit", sans-serif;
-  font-size: clamp(48px, 6.5vw, 92px);
-  line-height: 0.92;
-  letter-spacing: -4px;
+  font-size: clamp(42px, 6.5vw, 92px);
+  line-height: 0.98;
+  letter-spacing: clamp(-4px, -0.5vw, -2px);
   color: #efe8ff;
 }
 
@@ -289,6 +374,7 @@ button {
 
 .stats {
   display: flex;
+  flex-wrap: wrap;
   gap: 36px;
   margin-top: 48px;
 }
@@ -1023,13 +1109,44 @@ footer p {
 /* MOBILE */
 
 @media (max-width: 900px) {
+  .play-button.desktop-play {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobile-menu.open {
+    display: flex;
+    animation: menuIn 0.25s ease both;
+  }
+
+  @keyframes menuIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .navbar {
+    height: 68px;
+  }
+
   .nav-links {
     display: none;
   }
 
   .hero {
     grid-template-columns: 1fr;
-    padding-top: 80px;
+    padding-top: 60px;
+    min-height: 0;
+    gap: 40px;
   }
 
   .hero-card {
@@ -1051,40 +1168,75 @@ footer p {
 
 @media (max-width: 600px) {
   .navbar {
-    padding: 0 20px;
+    padding: 0 16px;
+  }
+
+  .logo-img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .logo strong {
+    font-size: 13px;
   }
 
   .play-button {
-    display: none;
+    display: block;
+    text-align: center;
   }
 
   .hero {
-    padding: 70px 20px;
+    padding: 40px 20px 60px;
   }
 
   .hero h1 {
-    font-size: 58px;
-    letter-spacing: -3px;
+    font-size: clamp(36px, 11vw, 48px);
+    letter-spacing: -2px;
   }
 
   .hero-content > p {
     font-size: 13px;
+    margin-top: 20px;
   }
 
   .hero-buttons {
     flex-direction: column;
+    margin-top: 24px;
   }
 
+  .hero-buttons a,
   .hero-buttons button {
     width: 100%;
+    text-align: center;
+    padding: 15px 20px;
   }
 
   .stats {
-    gap: 22px;
+    gap: 20px 28px;
+    margin-top: 30px;
+  }
+
+  .game-card {
+    min-height: 0;
+    padding: 26px 20px;
+  }
+
+  .game-thumb {
+    width: 110px;
+    height: 110px;
+  }
+
+  .game-card h2 {
+    margin-top: 20px;
+    font-size: 22px;
+  }
+
+  .game-card .primary-button {
+    width: 100%;
   }
 
   .section {
-    padding: 70px 20px;
+    padding: 60px 20px;
   }
 
   .section-heading {
@@ -1093,13 +1245,54 @@ footer p {
     gap: 20px;
   }
 
+  .section-heading .outline-button {
+    width: 100%;
+  }
+
+  .update-card {
+    min-height: 0;
+    padding: 22px;
+  }
+
+  .update-card h3 {
+    margin-top: 16px;
+    font-size: 19px;
+  }
+
+  .update-card small {
+    margin-top: 20px;
+  }
+
   .community-box {
-    padding: 30px;
+    padding: 26px 20px;
+    min-height: 0;
+  }
+
+  .community-box h2 {
+    font-size: 27px;
+  }
+
+  .community-box button {
+    width: 100%;
   }
 
   .feedback {
-    margin: 30px 20px 70px;
-    padding: 65px 20px;
+    margin: 30px 16px 70px;
+    padding: 50px 20px;
+  }
+
+  .feedback h2 {
+    font-size: 28px;
+  }
+
+  .feedback button {
+    width: 100%;
+  }
+
+  .credits {
+    flex-direction: column;
+    gap: 28px;
+    padding: 35px 20px;
   }
 
   footer {
@@ -1107,45 +1300,76 @@ footer p {
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
+    text-align: left;
   }
 
-  /* MODAL ON MOBILE */
+  /* MODAL ON MOBILE — full-height bottom sheet */
 
   .modal-overlay {
     padding: 0;
+    align-items: flex-end;
   }
 
   .modal-content {
     max-width: 100%;
-    max-height: 100vh;
-    border-radius: 16px 16px 0 0;
-    margin-top: auto;
+    max-height: 92vh;
+    height: 92vh;
+    border-radius: 18px 18px 0 0;
+    animation: sheetIn 0.3s ease both;
+  }
+
+  @keyframes sheetIn {
+    from {
+      transform: translateY(40px);
+      opacity: 0.5;
+    }
+
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .modal-header {
-    padding: 20px;
+    padding: 16px 18px;
   }
 
   .modal-header h2 {
     font-size: 18px;
   }
 
+  .close-btn {
+    font-size: 24px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
   .forum-posts-container {
-    padding: 20px;
+    padding: 18px;
+    gap: 18px;
   }
 
   .post-form {
-    padding: 16px;
+    padding: 14px;
     gap: 12px;
   }
 
   .form-input,
   .form-textarea {
-    font-size: 16px;
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+    padding: 12px 14px;
   }
 
   .form-label {
     font-size: 11px;
+  }
+
+  .image-button {
+    padding: 12px 16px;
+  }
+
+  .post-form .primary-button {
+    padding: 14px 20px;
   }
 
   .image-preview {
@@ -1167,5 +1391,10 @@ footer p {
   .post-image {
     max-height: 200px;
     margin-bottom: 10px;
+  }
+
+  .like-btn,
+  .reply-btn {
+    padding: 8px 0;
   }
 }
