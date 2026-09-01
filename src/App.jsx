@@ -54,8 +54,8 @@ function App() {
 
     loadPosts();
 
-    // Poll for updates every 3 seconds
-    const interval = setInterval(loadPosts, 3000);
+    // Poll for updates every 1 second (real-time feel)
+    const interval = setInterval(loadPosts, 1000);
 
     return () => clearInterval(interval);
   }, []);
@@ -64,15 +64,21 @@ function App() {
   useEffect(() => {
     const trackUser = async () => {
       try {
-        // Insert user session
-        await supabase
+        // Upsert user session (insert if new, update if exists)
+        const { error: upsertError } = await supabase
           .from('active_users')
-          .insert([{ session_id: sessionId, last_seen: new Date() }]);
+          .upsert([{ session_id: sessionId, last_seen: new Date() }], {
+            onConflict: 'session_id'
+          });
+
+        if (upsertError) throw upsertError;
 
         // Count active users (last seen in last 5 minutes)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
         const { count, error } = await supabase
           .from('active_users')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .gte('last_seen', fiveMinutesAgo.toISOString());
 
         if (error) throw error;
         setLiveUsers(count || 0);
