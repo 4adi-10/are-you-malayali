@@ -86,17 +86,8 @@ function App() {
     // Update user activity every 30 seconds
     const interval = setInterval(trackUser, 30000);
 
-    // Subscribe to active_users changes
-    const subscription = supabase
-      .from('active_users')
-      .on('*', () => {
-        trackUser();
-      })
-      .subscribe();
-
     return () => {
       clearInterval(interval);
-      subscription.unsubscribe();
     };
   }, [sessionId]);
 
