@@ -1,0 +1,22 @@
+{
+  "name": "Are You Malayali? | Community Hub",
+  "short_name": "AYM Hub",
+  "description": "Official community hub for [RELAPSE] Are You Malayali? Roblox experience by Dios Productions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#03120a",
+  "theme_color": "#03120a",
+  "icons": [
+    {
+      "src": "/assets/game-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
