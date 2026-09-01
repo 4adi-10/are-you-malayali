@@ -23,12 +23,12 @@ function App() {
     reports: []
   });
 
-  // Accurate Live Stats
-  const [liveUsers, setLiveUsers] = useState(1);
-  const [livePlayerCount, setLivePlayerCount] = useState(53);
-  const [liveVisits, setLiveVisits] = useState(231895);
-  const [liveLikes, setLiveLikes] = useState(498);
-  const [liveFavorites, setLiveFavorites] = useState(958);
+  // Accurate Live Stats — null until real data fetched
+  const [liveUsers, setLiveUsers] = useState(null);
+  const [livePlayerCount, setLivePlayerCount] = useState(null);
+  const [liveVisits, setLiveVisits] = useState(null);
+  const [liveLikes, setLiveLikes] = useState(null);
+  const [liveFavorites, setLiveFavorites] = useState(null);
   const [sessionId] = useState(() => {
     const existing = sessionStorage.getItem('aym_session_id');
     if (existing) return existing;
@@ -783,28 +783,28 @@ function App() {
               </div>
 
               <div className="stat-card highlight-stat">
-                <strong>👥 {liveUsers}</strong>
+                <strong>👥 {liveUsers !== null ? liveUsers : <span className="stat-loading">···</span>}</strong>
                 <span>Online on Hub</span>
               </div>
 
               <div className="stat-card highlight-stat">
-                <strong>🎮 {livePlayerCount.toLocaleString()}</strong>
+                <strong>🎮 {livePlayerCount !== null ? livePlayerCount.toLocaleString() : <span className="stat-loading">···</span>}</strong>
                 <span>Playing in Roblox</span>
                 <small className="refresh-timer">Updates in {refreshTimer}s</small>
               </div>
 
               <div className="stat-card">
-                <strong>👣 {liveVisits.toLocaleString()}</strong>
+                <strong>👣 {liveVisits !== null ? liveVisits.toLocaleString() : <span className="stat-loading">···</span>}</strong>
                 <span>Total Visits</span>
               </div>
 
               <div className="stat-card">
-                <strong>👍 {liveLikes.toLocaleString()}</strong>
+                <strong>👍 {liveLikes !== null ? liveLikes.toLocaleString() : <span className="stat-loading">···</span>}</strong>
                 <span>Game Likes</span>
               </div>
 
               <div className="stat-card">
-                <strong>⭐ {liveFavorites.toLocaleString()}</strong>
+                <strong>⭐ {liveFavorites !== null ? liveFavorites.toLocaleString() : <span className="stat-loading">···</span>}</strong>
                 <span>Favorites</span>
               </div>
             </div>

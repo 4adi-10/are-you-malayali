@@ -475,6 +475,18 @@ button {
   font-weight: 500;
 }
 
+.stat-loading {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.25);
+  animation: statPulse 1.2s ease-in-out infinite;
+  letter-spacing: 2px;
+}
+
+@keyframes statPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
 /* HERO CARD */
 .hero-card {
   position: relative;
