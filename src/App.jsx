@@ -104,7 +104,7 @@ function App() {
     const fetchPlayerCount = async () => {
       try {
         const response = await fetch(
-          'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/get-roblox-stats',
+          'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint',
           { method: 'GET' }
         );
 
