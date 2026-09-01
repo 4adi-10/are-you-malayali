@@ -54,15 +54,10 @@ function App() {
 
     loadPosts();
 
-    // Subscribe to real-time updates
-    const subscription = supabase
-      .from('forum_posts')
-      .on('*', (payload) => {
-        loadPosts(); // Reload posts on any change
-      })
-      .subscribe();
+    // Poll for updates every 3 seconds
+    const interval = setInterval(loadPosts, 3000);
 
-    return () => subscription.unsubscribe();
+    return () => clearInterval(interval);
   }, []);
 
   // Track active users
