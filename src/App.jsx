@@ -25,8 +25,8 @@ function App() {
 
   // Accurate Live Stats
   const [liveUsers, setLiveUsers] = useState(1);
-  const [livePlayerCount, setLivePlayerCount] = useState(69);
-  const [liveVisits, setLiveVisits] = useState(231815);
+  const [livePlayerCount, setLivePlayerCount] = useState(53);
+  const [liveVisits, setLiveVisits] = useState(231895);
   const [liveLikes, setLiveLikes] = useState(498);
   const [liveFavorites, setLiveFavorites] = useState(958);
   const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
@@ -283,18 +283,22 @@ function App() {
     };
   }, [sessionId]);
 
-  // Fetch live Roblox player count & stats with auth headers
+  // Fetch live Roblox player count & stats with auth headers & no-cache
   useEffect(() => {
     let isMounted = true;
+
     const fetchPlayerCount = async () => {
       try {
         const response = await fetch(
-          'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint',
+          `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
           {
             method: 'GET',
+            cache: 'no-store',
             headers: {
               'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-              'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf'
+              'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+              'Pragma': 'no-cache',
+              'Cache-Control': 'no-cache, no-store, must-revalidate'
             }
           }
         );
@@ -304,6 +308,8 @@ function App() {
           if (isMounted && data) {
             if (typeof data.playerCount === 'number') {
               setLivePlayerCount(data.playerCount);
+            } else if (typeof data.playing === 'number') {
+              setLivePlayerCount(data.playing);
             }
             if (typeof data.visits === 'number' && data.visits > 0) {
               setLiveVisits(data.visits);
@@ -319,16 +325,26 @@ function App() {
           }
         }
       } catch (err) {
-        console.error('Error fetching player count:', err);
+        console.error('Error fetching live player count:', err);
       }
     };
 
     fetchPlayerCount();
-    const interval = setInterval(fetchPlayerCount, 15000);
+    // Poll every 5 seconds for live real-time player count
+    const interval = setInterval(fetchPlayerCount, 5000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPlayerCount();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, []);
 
