@@ -677,10 +677,23 @@ button {
   background: rgba(6, 18, 14, 0.95);
 }
 
+.modal-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .modal-header h2 {
   font-family: "Outfit", sans-serif;
   font-size: 24px;
   color: #e8ffee;
+  margin: 0;
+}
+
+.live-users {
+  font-size: 13px;
+  color: #30a064;
+  font-weight: 500;
 }
 
 .close-btn {

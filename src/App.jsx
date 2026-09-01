@@ -1,40 +1,109 @@
 import "./App.css";
 import { useState, useRef, useEffect } from "react";
+import { supabase } from "./supabaseClient";
 
 function App() {
   const [forumPosts, setForumPosts] = useState({
-    suggestions: [
-      { id: 1, author: "MalluGamer", content: "Can we add more folk songs? 🎵", image: null, likes: 24, timestamp: "2 days ago", liked: false },
-      { id: 2, author: "VibeChaser", content: "Love the atmosphere! More locations would be amazing.", image: null, likes: 18, timestamp: "1 day ago", liked: false }
-    ],
-    feedback: [
-      { id: 1, author: "GameLover", content: "The graphics are stunning! Performance is smooth too.", image: null, likes: 32, timestamp: "3 days ago", liked: false },
-      { id: 2, author: "CommunityVoice", content: "Can we get a better notification system?", image: null, likes: 15, timestamp: "1 day ago", liked: false }
-    ],
-    general: [
-      { id: 1, author: "FriendlyNalu", content: "Just spent 3 hours chilling by the campfire with friends! Best experience ever 🔥", image: null, likes: 45, timestamp: "1 day ago", liked: false }
-    ],
-    bugs: [
-      { id: 1, author: "TechNerd", content: "Found a bug: emotes don't load on mobile sometimes", image: null, likes: 8, timestamp: "12 hours ago", liked: false }
-    ]
+    suggestions: [],
+    feedback: [],
+    general: [],
+    bugs: []
   });
 
-  // Load from localStorage on mount
+  const [liveUsers, setLiveUsers] = useState(0);
+  const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+
+  // Load posts from Supabase and subscribe to real-time updates
   useEffect(() => {
-    const saved = localStorage.getItem('forumPosts');
-    if (saved) {
+    const loadPosts = async () => {
       try {
-        setForumPosts(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to load saved posts:', e);
+        const { data, error } = await supabase
+          .from('forum_posts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Group posts by channel
+        const groupedPosts = {
+          suggestions: [],
+          feedback: [],
+          general: [],
+          bugs: []
+        };
+
+        data.forEach(post => {
+          if (groupedPosts[post.channel]) {
+            groupedPosts[post.channel].push({
+              id: post.id,
+              author: post.author,
+              content: post.content,
+              image: post.image_url,
+              likes: post.likes,
+              timestamp: getTimeAgo(new Date(post.created_at)),
+              liked: false
+            });
+          }
+        });
+
+        setForumPosts(groupedPosts);
+      } catch (error) {
+        console.error('Error loading posts:', error);
       }
-    }
+    };
+
+    loadPosts();
+
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .from('forum_posts')
+      .on('*', (payload) => {
+        loadPosts(); // Reload posts on any change
+      })
+      .subscribe();
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Save to localStorage whenever posts change
+  // Track active users
   useEffect(() => {
-    localStorage.setItem('forumPosts', JSON.stringify(forumPosts));
-  }, [forumPosts]);
+    const trackUser = async () => {
+      try {
+        // Insert user session
+        await supabase
+          .from('active_users')
+          .insert([{ session_id: sessionId, last_seen: new Date() }]);
+
+        // Count active users (last seen in last 5 minutes)
+        const { count, error } = await supabase
+          .from('active_users')
+          .select('*', { count: 'exact', head: true });
+
+        if (error) throw error;
+        setLiveUsers(count || 0);
+      } catch (error) {
+        console.error('Error tracking user:', error);
+      }
+    };
+
+    trackUser();
+
+    // Update user activity every 30 seconds
+    const interval = setInterval(trackUser, 30000);
+
+    // Subscribe to active_users changes
+    const subscription = supabase
+      .from('active_users')
+      .on('*', () => {
+        trackUser();
+      })
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      subscription.unsubscribe();
+    };
+  }, [sessionId]);
 
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [postContent, setPostContent] = useState("");
@@ -55,6 +124,18 @@ function App() {
     feedback: { title: "⭐ Feedback & Ideas", icon: "⭐" },
     general: { title: "🎮 General Discussion", icon: "🎮" },
     bugs: { title: "🐛 Bug Reports", icon: "🐛" }
+  };
+
+  // Helper function to format time
+  const getTimeAgo = (date) => {
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return "just now";
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    return date.toLocaleDateString();
   };
 
   const handleOpenChannel = (channelKey) => {
@@ -132,47 +213,69 @@ function App() {
     return true;
   };
 
-  const handlePostSubmit = (e) => {
+  const handlePostSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     if (!validatePost()) return;
 
-    const newPost = {
-      id: Date.now(),
-      author: userName.trim(),
-      content: postContent.trim(),
-      image: postImage,
-      likes: 0,
-      timestamp: "now",
-      liked: false
-    };
+    try {
+      const { error } = await supabase
+        .from('forum_posts')
+        .insert([
+          {
+            channel: selectedChannel,
+            author: userName.trim(),
+            content: postContent.trim(),
+            image_url: postImage,
+            likes: 0,
+            created_at: new Date()
+          }
+        ]);
 
-    setForumPosts({
-      ...forumPosts,
-      [selectedChannel]: [newPost, ...forumPosts[selectedChannel]]
-    });
+      if (error) throw error;
 
-    setLastPostTime({
-      ...lastPostTime,
-      [selectedChannel]: Date.now()
-    });
+      setLastPostTime({
+        ...lastPostTime,
+        [selectedChannel]: Date.now()
+      });
 
-    setPostContent("");
-    setUserName("");
-    setPostImage(null);
-    setImagePreview(null);
+      setPostContent("");
+      setUserName("");
+      setPostImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      setError("Failed to post message. Please try again.");
+      console.error('Error posting:', error);
+    }
   };
 
-  const handleLike = (channelKey, postId) => {
-    setForumPosts({
-      ...forumPosts,
-      [channelKey]: forumPosts[channelKey].map(post =>
-        post.id === postId 
-          ? { ...post, likes: post.liked ? post.likes - 1 : post.likes + 1, liked: !post.liked }
-          : post
-      )
-    });
+  const handleLike = async (channelKey, postId) => {
+    try {
+      const post = forumPosts[channelKey].find(p => p.id === postId);
+      if (!post) return;
+
+      const newLikes = post.liked ? post.likes - 1 : post.likes + 1;
+
+      const { error } = await supabase
+        .from('forum_posts')
+        .update({ likes: newLikes })
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      // Update local state
+      setForumPosts({
+        ...forumPosts,
+        [channelKey]: forumPosts[channelKey].map(p =>
+          p.id === postId 
+            ? { ...p, likes: newLikes, liked: !p.liked }
+            : p
+        )
+      });
+    } catch (error) {
+      console.error('Error updating like:', error);
+    }
   };
 
   return (
@@ -434,7 +537,10 @@ function App() {
         <div className="modal-overlay" onClick={handleCloseChannel}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{channels[selectedChannel].title}</h2>
+              <div>
+                <h2>{channels[selectedChannel].title}</h2>
+                <small className="live-users">👥 {liveUsers} online</small>
+              </div>
               <button className="close-btn" onClick={handleCloseChannel}>✕</button>
             </div>
 
