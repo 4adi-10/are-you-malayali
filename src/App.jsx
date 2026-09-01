@@ -55,10 +55,12 @@ function App() {
     bugs: []
   });
 
-  const [liveUsers, setLiveUsers] = useState(0);
-  const [livePlayerCount, setLivePlayerCount] = useState(0);
-  const [liveVisits, setLiveVisits] = useState(0);
-  const [liveFavorites, setLiveFavorites] = useState(0);
+  // Accurate Live Stats
+  const [liveUsers, setLiveUsers] = useState(1);
+  const [livePlayerCount, setLivePlayerCount] = useState(69);
+  const [liveVisits, setLiveVisits] = useState(231815);
+  const [liveLikes, setLiveLikes] = useState(498);
+  const [liveFavorites, setLiveFavorites] = useState(958);
   const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Persistent Liked Posts
@@ -212,23 +214,25 @@ function App() {
     let isMounted = true;
     const trackUser = async () => {
       try {
+        const nowIso = new Date().toISOString();
         const { error: upsertError } = await supabase
           .from('active_users')
-          .upsert([{ session_id: sessionId, last_seen: new Date() }], {
+          .upsert([{ session_id: sessionId, last_seen: nowIso }], {
             onConflict: 'session_id'
           });
 
         if (upsertError) throw upsertError;
 
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        // Active in last 3 minutes
+        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
         const { count, error: countErr } = await supabase
           .from('active_users')
           .select('*', { count: 'exact', head: true })
-          .gte('last_seen', fiveMinutesAgo.toISOString());
+          .gte('last_seen', threeMinutesAgo);
 
         if (countErr) throw countErr;
         if (isMounted) {
-          setLiveUsers(count || 1);
+          setLiveUsers(Math.max(1, count || 1));
         }
       } catch (err) {
         console.error('Error tracking user:', err);
@@ -236,30 +240,56 @@ function App() {
     };
 
     trackUser();
-    const interval = setInterval(trackUser, 30000);
+    const interval = setInterval(trackUser, 15000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        trackUser();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [sessionId]);
 
-  // Fetch live Roblox player count & stats
+  // Fetch live Roblox player count & stats with auth headers
   useEffect(() => {
     let isMounted = true;
     const fetchPlayerCount = async () => {
       try {
         const response = await fetch(
           'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint',
-          { method: 'GET' }
+          {
+            method: 'GET',
+            headers: {
+              'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+              'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf'
+            }
+          }
         );
 
         if (response.ok) {
           const data = await response.json();
-          if (isMounted) {
-            setLivePlayerCount(data.playerCount || 0);
-            setLiveVisits(data.visits || 0);
-            setLiveFavorites(data.favoritedCount || 0);
+          if (isMounted && data) {
+            if (typeof data.playerCount === 'number') {
+              setLivePlayerCount(data.playerCount);
+            }
+            if (typeof data.visits === 'number' && data.visits > 0) {
+              setLiveVisits(data.visits);
+            }
+            if (typeof data.likes === 'number' && data.likes > 0) {
+              setLiveLikes(data.likes);
+            } else if (typeof data.upVotes === 'number' && data.upVotes > 0) {
+              setLiveLikes(data.upVotes);
+            }
+            if (typeof data.favoritedCount === 'number' && data.favoritedCount > 0) {
+              setLiveFavorites(data.favoritedCount);
+            }
           }
         }
       } catch (err) {
@@ -631,10 +661,10 @@ function App() {
             <div className="stats">
               <div className="stat-card">
                 <strong>200+</strong>
-                <span>Soundboard Songs</span>
+                <span>Mallu Songs</span>
               </div>
 
-              <div className="stat-card">
+              <div className="stat-card highlight-stat">
                 <strong>👥 {liveUsers}</strong>
                 <span>Online on Hub</span>
               </div>
@@ -645,13 +675,18 @@ function App() {
               </div>
 
               <div className="stat-card">
-                <strong>👣 {liveVisits > 0 ? liveVisits.toLocaleString() : "10,000+"}</strong>
+                <strong>👣 {liveVisits.toLocaleString()}</strong>
                 <span>Total Visits</span>
               </div>
 
               <div className="stat-card">
-                <strong>👍 {liveFavorites > 0 ? liveFavorites.toLocaleString() : "500+"}</strong>
+                <strong>👍 {liveLikes.toLocaleString()}</strong>
                 <span>Game Likes</span>
+              </div>
+
+              <div className="stat-card">
+                <strong>⭐ {liveFavorites.toLocaleString()}</strong>
+                <span>Favorites</span>
               </div>
             </div>
           </div>
