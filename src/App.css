@@ -466,6 +466,15 @@ button {
   color: #7efeb7;
 }
 
+.refresh-timer {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.6rem;
+  color: rgba(127, 254, 183, 0.5);
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+
 /* HERO CARD */
 .hero-card {
   position: relative;

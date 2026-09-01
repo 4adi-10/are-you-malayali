@@ -29,7 +29,13 @@ function App() {
   const [liveVisits, setLiveVisits] = useState(231895);
   const [liveLikes, setLiveLikes] = useState(498);
   const [liveFavorites, setLiveFavorites] = useState(958);
-  const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(() => {
+    const existing = sessionStorage.getItem('aym_session_id');
+    if (existing) return existing;
+    const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    sessionStorage.setItem('aym_session_id', newId);
+    return newId;
+  });
 
   // Persistent Liked Posts
   const [likedPostIds, setLikedPostIds] = useState(() => {
@@ -59,6 +65,9 @@ function App() {
   // Reply States
   const [replyingTo, setReplyingTo] = useState(null); // { id, author, snippet } | null
   const [expandedReplies, setExpandedReplies] = useState({}); // { [postId]: boolean }
+
+  // Refresh Timer for player count
+  const [refreshTimer, setRefreshTimer] = useState(5);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -249,12 +258,12 @@ function App() {
 
         if (upsertError) throw upsertError;
 
-        // Active in last 3 minutes
-        const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+        // Active in last 30 seconds (tight window to avoid ghost counts)
+        const cutoff = new Date(Date.now() - 30 * 1000).toISOString();
         const { count, error: countErr } = await supabase
           .from('active_users')
           .select('*', { count: 'exact', head: true })
-          .gte('last_seen', threeMinutesAgo);
+          .gte('last_seen', cutoff);
 
         if (countErr) throw countErr;
         if (isMounted) {
@@ -265,7 +274,27 @@ function App() {
       }
     };
 
+    // Clean up session on tab/window close
+    const cleanupSession = () => {
+      // Use sendBeacon for reliable cleanup on close
+      const url = `${import.meta.env.VITE_SUPABASE_URL || 'https://wqvnnxjdaslngwfqoxhz.supabase.co'}/rest/v1/active_users?session_id=eq.${sessionId}`;
+      const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf';
+      navigator.sendBeacon?.(url); // best-effort
+      // Also try fetch with keepalive
+      fetch(url, {
+        method: 'DELETE',
+        keepalive: true,
+        headers: {
+          'apikey': apiKey,
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        }
+      }).catch(() => {});
+    };
+
     trackUser();
+    // Heartbeat every 15 seconds
     const interval = setInterval(trackUser, 15000);
 
     const handleVisibility = () => {
@@ -275,11 +304,15 @@ function App() {
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('beforeunload', cleanupSession);
+    window.addEventListener('pagehide', cleanupSession);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', cleanupSession);
+      window.removeEventListener('pagehide', cleanupSession);
     };
   }, [sessionId]);
 
@@ -327,6 +360,10 @@ function App() {
       } catch (err) {
         console.error('Error fetching live player count:', err);
       }
+      // Reset countdown timer after each fetch
+      if (isMounted) {
+        setRefreshTimer(5);
+      }
     };
 
     fetchPlayerCount();
@@ -346,6 +383,14 @@ function App() {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
+  }, []);
+
+  // Countdown timer that ticks every second
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setRefreshTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(tick);
   }, []);
 
   // Keyboard accessibility and body scroll lock
@@ -745,6 +790,7 @@ function App() {
               <div className="stat-card highlight-stat">
                 <strong>🎮 {livePlayerCount.toLocaleString()}</strong>
                 <span>Playing in Roblox</span>
+                <small className="refresh-timer">Updates in {refreshTimer}s</small>
               </div>
 
               <div className="stat-card">
