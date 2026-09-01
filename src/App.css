@@ -373,16 +373,26 @@ button {
 }
 
 .stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 36px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, max-content));
+  gap: 16px 36px;
   margin-top: 48px;
 }
 
 .stats div {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(30, 160, 100, 0.07);
+  transition: 0.25s ease;
+}
+
+.stats div:hover {
+  border-color: rgba(30, 160, 100, 0.18);
+  background: rgba(30, 160, 100, 0.05);
+  transform: translateY(-2px);
 }
 
 .stats strong {

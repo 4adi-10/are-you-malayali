@@ -13,6 +13,7 @@ function App() {
   const [liveUsers, setLiveUsers] = useState(0);
   const [livePlayerCount, setLivePlayerCount] = useState(0);
   const [liveVisits, setLiveVisits] = useState(0);
+  const [liveFavorites, setLiveFavorites] = useState(0);
   const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Load posts from Supabase and subscribe to real-time updates
@@ -112,6 +113,7 @@ function App() {
           const data = await response.json();
           setLivePlayerCount(data.playerCount || 0);
           setLiveVisits(data.visits || 0);
+          setLiveFavorites(data.favoritedCount || 0);
         }
       } catch (error) {
         console.error('Error fetching player count:', error);
@@ -339,7 +341,7 @@ function App() {
           <a className="play-button" href="https://www.roblox.com/games/105872949117236/Are-You-Malayali" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
         </div>
 
-        <a className="play-button desktop-play" href="https://www.roblox.com/" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
+        <a className="play-button desktop-play" href="https://www.roblox.com/games/105872949117236/Are-You-Malayali" target="_blank" rel="noreferrer">PLAY ON ROBLOX ↗</a>
       </nav>
 
       <main>
@@ -373,9 +375,7 @@ function App() {
             <div className="hero-buttons">
               <a className="primary-button" href="https://www.roblox.com/games/105872949117236/Are-You-Malayali" target="_blank" rel="noreferrer">🎮 PLAY GAME</a>
 
-              <button className="secondary-button">
-                ✨ VIEW UPDATES
-              </button>
+              <a className="secondary-button" href="#updates">✨ VIEW UPDATES</a>
             </div>
 
             <div className="stats">
@@ -403,6 +403,11 @@ function App() {
                 <strong>👣 {liveVisits.toLocaleString()}</strong>
                 <span>Visits</span>
               </div>
+
+              <div>
+                <strong>👍 {liveFavorites.toLocaleString()}</strong>
+                <span>Likes</span>
+              </div>
             </div>
           </div>
 
@@ -412,7 +417,7 @@ function App() {
             <div className="game-card">
               <span className="live-dot">● LIVE</span>
 
-              <img src="/assets/ay-thumb.svg" alt="Are You Malayali" className="game-thumb" />
+              <img src="/assets/ay-thumb.png" alt="Are You Malayali" className="game-thumb" />
 
               <h2>Are You Malayali?</h2>
 
@@ -429,8 +434,6 @@ function App() {
               <span className="section-label">WHAT'S NEW</span>
               <h2>Latest Updates</h2>
             </div>
-
-            <button className="outline-button">VIEW ALL →</button>
           </div>
 
           <div className="update-grid">
@@ -475,7 +478,7 @@ function App() {
               location or improvement? Send it directly to the team.
             </p>
 
-            <button className="primary-button">
+            <button className="primary-button" onClick={() => handleOpenChannel("suggestions")}>
               💡 SEND A SUGGESTION
             </button>
           </div>
@@ -490,7 +493,7 @@ function App() {
               Send us your suggestion.
             </p>
 
-            <button className="secondary-button">
+            <button className="secondary-button" onClick={() => handleOpenChannel("suggestions")}>
               🎵 REQUEST A SONG
             </button>
           </div>
@@ -505,7 +508,7 @@ function App() {
             Your feedback helps us make Are You Malayali? better.
           </p>
 
-          <button className="primary-button">
+          <button className="primary-button" onClick={() => handleOpenChannel("feedback")}>
             ⭐ GIVE FEEDBACK
           </button>
         </section>
@@ -560,7 +563,7 @@ function App() {
         <section className="credits">
           <div className="col">
             <h3>Credits</h3>
-            <p>• Owner & Developer: Aadi<br/>• Co-Developer: Kaniel<br/>• GFX & Thumbnails: Fluffy<br/>• Studio: Dios Productions</p>
+            <p>• Owner & Developer: Aadi<br />• Co-Developer: Kaniel<br />• GFX & Thumbnails: Fluffy<br />• Studio: Dios Productions</p>
           </div>
 
           <div className="col">
