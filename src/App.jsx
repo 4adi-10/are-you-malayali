@@ -11,6 +11,7 @@ function App() {
   });
 
   const [liveUsers, setLiveUsers] = useState(0);
+  const [livePlayerCount, setLivePlayerCount] = useState(0);
   const [sessionId] = useState(() => `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   // Load posts from Supabase and subscribe to real-time updates
@@ -96,6 +97,37 @@ function App() {
       clearInterval(interval);
     };
   }, [sessionId]);
+
+  // Fetch live Roblox player count
+  useEffect(() => {
+    const fetchPlayerCount = async () => {
+      try {
+        const response = await fetch(
+          'https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/get-roblox-stats',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setLivePlayerCount(data.playerCount || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching player count:', error);
+      }
+    };
+
+    fetchPlayerCount();
+
+    // Poll every 10 seconds
+    const interval = setInterval(fetchPlayerCount, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [postContent, setPostContent] = useState("");
@@ -342,6 +374,11 @@ function App() {
               <div>
                 <strong>🌿</strong>
                 <span>Mallu Vibes</span>
+              </div>
+
+              <div>
+                <strong>🎮 {livePlayerCount}</strong>
+                <span>Playing Now</span>
               </div>
             </div>
           </div>
