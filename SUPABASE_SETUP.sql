@@ -1,6 +1,7 @@
 -- Run these SQL commands in Supabase SQL Editor to set up your database
 
 -- Create forum_posts table
+-- Channels: general, suggestions, feedback, bugs, reports
 CREATE TABLE forum_posts (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   channel TEXT NOT NULL,

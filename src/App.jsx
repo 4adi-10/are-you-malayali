@@ -14,45 +14,13 @@ const getTimeAgo = (date) => {
   return date.toLocaleDateString();
 };
 
-// Curated playlist catalog representing the in-game 200+ Mallu soundboard
-const FEATURED_SONGS = [
-  { id: 1, title: "Illuminati", movie: "Aavesham", artist: "Sushin Shyam, Dabzee", category: "Trending", tag: "🔥 Viral Hit" },
-  { id: 2, title: "Jaada", movie: "Aavesham", artist: "Sushin Shyam, Sreenath Bhasi", category: "Trending", tag: "⚡ High Energy" },
-  { id: 3, title: "Kuthanthram", movie: "Manjummel Boys", artist: "Sushin Shyam, Vedan", category: "Trending", tag: "💥 Bass Boost" },
-  { id: 4, title: "Mini Maharani", movie: "Premalu", artist: "Vishnu Vijay, Kapil Kapilan", category: "Trending", tag: "✨ Dance Vibe" },
-  { id: 5, title: "Armadham", movie: "Aavesham", artist: "Sushin Shyam, Pranavam Sasi", category: "Trending", tag: "🎉 Party Hit" },
-  { id: 6, title: "Aasa Kooda", movie: "Independent Single", artist: "Sai Abhyankkar", category: "Trending", tag: "🌟 Groovy" },
-
-  { id: 7, title: "Nee Himamazhayayi", movie: "Edakkad Battalion 06", artist: "K.S. Harisankar, Nithya Mammen", category: "Chill Melodies", tag: "🌿 Pure Romance" },
-  { id: 8, title: "Uyiril Thodum", movie: "Kumbalangi Nights", artist: "Sooraj Santhosh, Anne Amie", category: "Chill Melodies", tag: "🌧️ Soulful" },
-  { id: 9, title: "Cherathukal", movie: "Kumbalangi Nights", artist: "Sithara Krishnakumar, Sushin Shyam", category: "Chill Melodies", tag: "✨ Warm Vibe" },
-  { id: 10, title: "Malare", movie: "Premam", artist: "Vijay Yesudas, Rajesh Murugesan", category: "Chill Melodies", tag: "🌸 Timeless" },
-  { id: 11, title: "Aluva Puzha", movie: "Premam", artist: "Vineeth Sreenivasan", category: "Chill Melodies", tag: "🍃 Nostalgic Flow" },
-  { id: 12, title: "Parayuvaan", movie: "Ishq", artist: "Sid Sriram, Jakes Bejoy", category: "Chill Melodies", tag: "💫 Deep Emotion" },
-
-  { id: 13, title: "Oru Rathri Koodi", movie: "Summer in Bethlehem", artist: "K.J. Yesudas, K.S. Chithra", category: "Nostalgia", tag: "📜 Golden Classic" },
-  { id: 14, title: "Thumbi Vaa", movie: "Olangal", artist: "S. Janaki, Ilaiyaraaja", category: "Nostalgia", tag: "🌿 Evergreen" },
-  { id: 15, title: "Karale Karalinte", movie: "Udayananu Tharam", artist: "Vineeth Sreenivasan, Rimi Tomy", category: "Nostalgia", tag: "💖 Fan Favorite" },
-  { id: 16, title: "Pramadavanam", movie: "His Highness Abdullah", artist: "K.J. Yesudas, Raveendran", category: "Nostalgia", tag: "🎻 Masterpiece" },
-  { id: 17, title: "Manikya Malaraya Poovi", movie: "Oru Adaar Love", artist: "Vineeth Sreenivasan, Shaan Rahman", category: "Nostalgia", tag: "✨ Iconic" },
-  { id: 18, title: "Chandana Cholayil", movie: "Sallapam", artist: "K.J. Yesudas, Johnson", category: "Nostalgia", tag: "🍃 Pure Gold" },
-
-  { id: 19, title: "Thallumaala Pattu", movie: "Thallumaala", artist: "Vishnu Vijay, Hrishi, Shenbagaraj", category: "Party & Beats", tag: "🔥 Full Blast" },
-  { id: 20, title: "Ole Melody", movie: "Thallumaala", artist: "Haricharan, Benny Dayal", category: "Party & Beats", tag: "⚡ Modern Beat" },
-  { id: 21, title: "Jimikki Kammal", movie: "Velipadinte Pusthakam", artist: "Vineeth Sreenivasan, Shaan Rahman", category: "Party & Beats", tag: "💃 World Viral" },
-  { id: 22, title: "Kudukku", movie: "Love Action Drama", artist: "Vineeth Sreenivasan, Shaan Rahman", category: "Party & Beats", tag: "🕺 Fast Vibe" },
-  { id: 23, title: "Appangal Embadum", movie: "Ustad Hotel", artist: "Anna Katharina Valayil, Gopi Sundar", category: "Party & Beats", tag: "☕ Kozhikode Vibe" },
-  { id: 24, title: "Theerame", movie: "Malik", artist: "K.S. Chithra, Sooraj Santhosh, Sushin Shyam", category: "Chill Melodies", tag: "🌊 Coastal Mist" }
-];
-
-const SONG_CATEGORIES = ["All", "Trending", "Chill Melodies", "Nostalgia", "Party & Beats"];
-
 function App() {
   const [forumPosts, setForumPosts] = useState({
     suggestions: [],
     feedback: [],
     general: [],
-    bugs: []
+    bugs: [],
+    reports: []
   });
 
   // Accurate Live Stats
@@ -88,11 +56,12 @@ function App() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [toasts, setToasts] = useState([]);
 
-  // Song Explorer States
-  const [songSearch, setSongSearch] = useState("");
-  const [selectedSongCategory, setSelectedSongCategory] = useState("All");
+  // Reply States
+  const [replyingTo, setReplyingTo] = useState(null); // { id, author, snippet } | null
+  const [expandedReplies, setExpandedReplies] = useState({}); // { [postId]: boolean }
 
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const MAX_USERNAME_LENGTH = 20;
   const MAX_CONTENT_LENGTH = 500;
@@ -100,10 +69,11 @@ function App() {
   const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
   const channels = {
-    suggestions: { title: "🎵 Song Suggestions", icon: "🎵", description: "Suggest new Mallu songs for the in-game soundboard!" },
-    feedback: { title: "⭐ Feedback & Ideas", icon: "⭐", description: "Share your ideas & feature thoughts with the devs." },
-    general: { title: "🎮 General Discussion", icon: "🎮", description: "Hangout, share stories & connect with Malayali players." },
-    bugs: { title: "🐛 Bug Reports", icon: "🐛", description: "Report glitches or performance issues to get them fixed." }
+    general: { title: "🎮 General Discussion", icon: "🎮", description: "Hangout, share stories, memes & connect with Malayali players." },
+    suggestions: { title: "🎵 Song & Feature Suggestions", icon: "🎵", description: "Suggest songs for the in-game soundboard, areas, and ideas." },
+    feedback: { title: "⭐ Feedback & Ideas", icon: "⭐", description: "Share your thoughts and feedback directly with the devs." },
+    bugs: { title: "🐛 Bug Reports", icon: "🐛", description: "Report glitches or performance issues to get them fixed." },
+    reports: { title: "🚨 Player & Moderation Reports", icon: "🚨", description: "Report exploiters, rule breakers, or inappropriate behavior to moderators." }
   };
 
   // Toast Helper
@@ -120,6 +90,7 @@ function App() {
     setPostContent("");
     setPostImage(null);
     setImagePreview(null);
+    setReplyingTo(null);
     setError("");
   }, []);
 
@@ -128,9 +99,11 @@ function App() {
     if (initialText) {
       setPostContent(initialText);
     }
+    setReplyingTo(null);
     setError("");
   }, []);
 
+  // Fetch all posts and structure replies into parent threads
   const fetchAllPosts = useCallback(async () => {
     try {
       const { data, error: fetchErr } = await supabase
@@ -148,29 +121,82 @@ function App() {
       }
       const likedSet = new Set(currentLikes);
 
-      const groupedPosts = {
+      const rawGrouped = {
+        general: [],
         suggestions: [],
         feedback: [],
-        general: [],
-        bugs: []
+        bugs: [],
+        reports: []
       };
 
-      (data || []).forEach(post => {
-        if (groupedPosts[post.channel]) {
-          groupedPosts[post.channel].push({
-            id: post.id,
-            author: post.author,
-            content: post.content,
-            image: post.image_url,
-            likes: post.likes || 0,
-            timestamp: getTimeAgo(new Date(post.created_at)),
-            rawDate: new Date(post.created_at).getTime(),
-            liked: likedSet.has(post.id)
-          });
+      // 1. Parse raw posts and extract replies
+      const allParsed = (data || []).map(post => {
+        let parentId = null;
+        let replyToAuthor = null;
+        let cleanText = post.content || "";
+
+        // Check if formatted as [reply:123:@author] text
+        const replyMatch = cleanText.match(/^\[reply:(\d+):@([^\]]+)\]\s*(.*)$/s);
+        if (replyMatch) {
+          parentId = parseInt(replyMatch[1], 10);
+          replyToAuthor = replyMatch[2];
+          cleanText = replyMatch[3];
+        }
+
+        return {
+          id: post.id,
+          channel: post.channel,
+          author: post.author,
+          content: cleanText,
+          originalContent: post.content,
+          image: post.image_url,
+          likes: post.likes || 0,
+          timestamp: getTimeAgo(new Date(post.created_at)),
+          rawDate: new Date(post.created_at).getTime(),
+          liked: likedSet.has(post.id),
+          parentId,
+          replyToAuthor,
+          replies: []
+        };
+      });
+
+      // 2. Build map and attach replies to parent posts
+      const postMap = new Map();
+      allParsed.forEach(p => postMap.set(p.id, p));
+
+      const topLevelGrouped = {
+        general: [],
+        suggestions: [],
+        feedback: [],
+        bugs: [],
+        reports: []
+      };
+
+      allParsed.forEach(post => {
+        if (post.parentId && postMap.has(post.parentId)) {
+          // Attach as reply to parent post
+          const parent = postMap.get(post.parentId);
+          parent.replies.push(post);
+        } else {
+          // Top-level post
+          if (topLevelGrouped[post.channel]) {
+            topLevelGrouped[post.channel].push(post);
+          } else if (rawGrouped[post.channel]) {
+            rawGrouped[post.channel].push(post);
+          }
         }
       });
 
-      setForumPosts(groupedPosts);
+      // Sort replies in chronological order (oldest first)
+      Object.keys(topLevelGrouped).forEach(ch => {
+        topLevelGrouped[ch].forEach(post => {
+          if (post.replies.length > 0) {
+            post.replies.sort((a, b) => a.rawDate - b.rawDate);
+          }
+        });
+      });
+
+      setForumPosts(topLevelGrouped);
     } catch (err) {
       console.error('Error loading posts:', err);
     }
@@ -391,6 +417,34 @@ function App() {
     return true;
   };
 
+  // Start replying to a post
+  const handleStartReply = (post) => {
+    setReplyingTo({
+      id: post.id,
+      author: post.author,
+      snippet: post.content.length > 50 ? `${post.content.slice(0, 50)}...` : post.content
+    });
+    // Auto expand replies on parent post
+    setExpandedReplies(prev => ({ ...prev, [post.id]: true }));
+    setError("");
+
+    // Focus textarea
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  const toggleReplies = (postId) => {
+    setExpandedReplies(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -398,10 +452,16 @@ function App() {
     if (!validatePost()) return;
 
     const trimmedAuthor = userName.trim();
-    const trimmedContent = postContent.trim();
+    let finalContent = postContent.trim();
+
+    // If replying, prefix with structured metadata
+    if (replyingTo) {
+      finalContent = `[reply:${replyingTo.id}:@${replyingTo.author}] ${finalContent}`;
+    }
+
     const imagePayload = postImage;
 
-    // Save username in localStorage for convenience
+    // Save username in localStorage
     try {
       localStorage.setItem("aym_username", trimmedAuthor);
     } catch (err) {
@@ -415,7 +475,7 @@ function App() {
           {
             channel: selectedChannel,
             author: trimmedAuthor,
-            content: trimmedContent,
+            content: finalContent,
             image_url: imagePayload,
             likes: 0,
             created_at: new Date()
@@ -432,7 +492,8 @@ function App() {
       setPostContent("");
       setPostImage(null);
       setImagePreview(null);
-      showToast("✨ Post published to the community!", "success");
+      setReplyingTo(null);
+      showToast(replyingTo ? "💬 Reply posted!" : "✨ Post published to the channel!", "success");
       void fetchAllPosts();
     } catch (err) {
       setError("Failed to post message. Please try again.");
@@ -454,25 +515,44 @@ function App() {
       console.error(err);
     }
 
-    const post = forumPosts[channelKey]?.find(p => p.id === postId);
-    if (!post) return;
-
     const delta = isCurrentlyLiked ? -1 : 1;
-    const newLikes = Math.max(0, (post.likes || 0) + delta);
 
-    // Optimistic UI update
-    setForumPosts(prev => ({
-      ...prev,
-      [channelKey]: prev[channelKey].map(p =>
-        p.id === postId
-          ? { ...p, likes: newLikes, liked: !isCurrentlyLiked }
-          : p
-      )
-    }));
+    // Optimistically update top level or reply posts
+    setForumPosts(prev => {
+      const channelPosts = prev[channelKey] || [];
+      const updated = channelPosts.map(p => {
+        if (p.id === postId) {
+          return { ...p, likes: Math.max(0, (p.likes || 0) + delta), liked: !isCurrentlyLiked };
+        }
+        if (p.replies && p.replies.length > 0) {
+          const updatedReplies = p.replies.map(r =>
+            r.id === postId
+              ? { ...r, likes: Math.max(0, (r.likes || 0) + delta), liked: !isCurrentlyLiked }
+              : r
+          );
+          return { ...p, replies: updatedReplies };
+        }
+        return p;
+      });
+      return { ...prev, [channelKey]: updated };
+    });
 
     showToast(isCurrentlyLiked ? "Removed like" : "❤️ Liked post!", "info");
 
     try {
+      // Find current like count to update in DB
+      let currentLikes = 0;
+      const allPostsInChannel = forumPosts[channelKey] || [];
+      for (const p of allPostsInChannel) {
+        if (p.id === postId) currentLikes = p.likes;
+        if (p.replies) {
+          for (const r of p.replies) {
+            if (r.id === postId) currentLikes = r.likes;
+          }
+        }
+      }
+      const newLikes = Math.max(0, currentLikes + delta);
+
       const { error: updateErr } = await supabase
         .from('forum_posts')
         .update({ likes: newLikes })
@@ -488,7 +568,7 @@ function App() {
   const handleShare = async () => {
     const shareData = {
       title: "Are You Malayali? | Roblox Community Hub",
-      text: "Join the official Are You Malayali community! 200+ Mallu songs, chill nature vibes & live stats.",
+      text: "Join the official Are You Malayali community! Chill nature vibes, live stats & active forums.",
       url: window.location.href
     };
 
@@ -512,27 +592,6 @@ function App() {
       showToast("🔗 Hub link copied to clipboard!", "success");
     }
   };
-
-  // Handle Quick Song Suggestion
-  const handleSuggestSong = (songTitle, movie) => {
-    const text = `🎵 Song Request: "${songTitle}" from ${movie}`;
-    handleOpenChannel("suggestions", text);
-  };
-
-  // Filtered & Sorted Song Catalog
-  const filteredSongs = useMemo(() => {
-    return FEATURED_SONGS.filter((song) => {
-      const matchesCategory = selectedSongCategory === "All" || song.category === selectedSongCategory;
-      const q = songSearch.toLowerCase().trim();
-      const matchesQuery =
-        !q ||
-        song.title.toLowerCase().includes(q) ||
-        song.movie.toLowerCase().includes(q) ||
-        song.artist.toLowerCase().includes(q) ||
-        song.tag.toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
-    });
-  }, [songSearch, selectedSongCategory]);
 
   // Sorted Forum Posts for active modal
   const displayedPosts = useMemo(() => {
@@ -568,9 +627,8 @@ function App() {
         <div className="nav-links">
           <a href="#home">Home</a>
           <a href="#updates">Updates</a>
-          <a href="#songs">Music Soundboard</a>
           <a href="#forums">Forums</a>
-          <a href="#feedback">Feedback</a>
+          <a href="#feedback">Feedback & Reports</a>
         </div>
 
         <div className="nav-actions">
@@ -601,9 +659,8 @@ function App() {
         <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
           <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
           <a href="#updates" onClick={() => setMenuOpen(false)}>Updates</a>
-          <a href="#songs" onClick={() => setMenuOpen(false)}>Music Soundboard</a>
           <a href="#forums" onClick={() => setMenuOpen(false)}>Forums</a>
-          <a href="#feedback" onClick={() => setMenuOpen(false)}>Feedback</a>
+          <a href="#feedback" onClick={() => setMenuOpen(false)}>Feedback & Reports</a>
           <button className="mobile-share-btn" onClick={() => { setMenuOpen(false); handleShare(); }}>
             🔗 Share Community Hub
           </button>
@@ -652,8 +709,8 @@ function App() {
                 🎮 PLAY ON ROBLOX
               </a>
 
-              <a className="secondary-button" href="#songs">
-                🎵 BROWSE 200+ SONGS
+              <a className="secondary-button" href="#forums">
+                💬 JOIN COMMUNITY FORUMS
               </a>
             </div>
 
@@ -731,111 +788,30 @@ function App() {
           <div className="update-grid">
             <article className="update-card featured">
               <span className="update-badge">LATEST PATCH</span>
-              <h3>New In-Game Soundboard & Songs</h3>
+              <h3>New In-Game Soundboard & Hangouts</h3>
               <p>
-                Expanded soundboard featuring the newest 2026 trending tracks, Malayalam hip hop, and timeless classic melodies.
+                Expanded soundboard featuring trending Malayalam tracks, classroom chill zone, and realistic rain acoustics.
               </p>
-              <small>September 2026 • Live Now</small>
+              <small>Live Now on Roblox</small>
             </article>
 
             <article className="update-card">
-              <span className="update-badge">FORUMS LIVE</span>
-              <h3>Real-Time Community Discussions</h3>
+              <span className="update-badge">COMMUNITY FORUMS</span>
+              <h3>Interactive Channels & Reply Threads</h3>
               <p>
-                Suggest songs, submit feedback, vote on community ideas, and report bugs with instant live synchronization.
+                Discuss ideas, suggest songs, report exploiters, and reply directly to other players in real-time threads.
               </p>
-              <small>Global Community Active</small>
+              <small>Global Sync Active</small>
             </article>
 
             <article className="update-card">
               <span className="update-badge">IN DEVELOPMENT</span>
-              <h3>Scenic Hangout Expansions</h3>
+              <h3>Scenic Backwaters & Tea Stall Expansion</h3>
               <p>
                 New cozy Kerala backwaters area, interactive tea stall (Thattukada), and scenic sunset viewpoint.
               </p>
               <small>Coming in Next Season</small>
             </article>
-          </div>
-        </section>
-
-        {/* INTERACTIVE SONG SOUNDBOARD SHOWCASE */}
-        <section className="section songs-showcase-section" id="songs">
-          <div className="section-heading">
-            <div>
-              <span className="section-label">IN-GAME SOUNDBOARD</span>
-              <h2>200+ Malayalam Songs Collection</h2>
-              <p className="section-subtext">
-                Browse popular soundboard tracks included inside the game. Don't see your favorite track? Request it in our forums!
-              </p>
-            </div>
-            <button className="primary-button" onClick={() => handleOpenChannel("suggestions")}>
-              ➕ SUGGEST NEW SONG
-            </button>
-          </div>
-
-          {/* SEARCH & FILTERS */}
-          <div className="song-controls">
-            <div className="song-search-box">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Search by song name, movie, artist or vibe..."
-                value={songSearch}
-                onChange={(e) => setSongSearch(e.target.value)}
-                className="song-search-input"
-              />
-              {songSearch && (
-                <button className="search-clear-btn" onClick={() => setSongSearch("")}>
-                  ✕
-                </button>
-              )}
-            </div>
-
-            <div className="category-pills">
-              {SONG_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  className={`category-pill ${selectedSongCategory === cat ? "active" : ""}`}
-                  onClick={() => setSelectedSongCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* SONG GRID */}
-          <div className="songs-grid">
-            {filteredSongs.length === 0 ? (
-              <div className="no-songs-found">
-                <p>No tracks matching "{songSearch}".</p>
-                <button className="secondary-button" onClick={() => handleOpenChannel("suggestions", `🎵 Request: ${songSearch}`)}>
-                  Request "{songSearch}" in Forums →
-                </button>
-              </div>
-            ) : (
-              filteredSongs.map((song) => (
-                <div key={song.id} className="song-card">
-                  <div className="song-header">
-                    <span className="song-icon">🎵</span>
-                    <span className="song-tag">{song.tag}</span>
-                  </div>
-                  <h3 className="song-title">{song.title}</h3>
-                  <p className="song-movie">🎬 {song.movie}</p>
-                  <p className="song-artist">🎙️ {song.artist}</p>
-                  <div className="song-footer">
-                    <span className="song-category-badge">{song.category}</span>
-                    <button
-                      className="song-suggest-btn"
-                      onClick={() => handleSuggestSong(song.title, song.movie)}
-                      title="Request or discuss in forum"
-                    >
-                      💬 Discuss in Forum
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </section>
 
@@ -846,14 +822,19 @@ function App() {
               <span className="section-label">COMMUNITY FORUMS</span>
               <h2>Join Live Discussions</h2>
               <p className="section-subtext">
-                Real-time channels to collaborate directly with the development team and other Malayali players.
+                Real-time channels to chat with players, submit suggestions, report rule breakers, and collaborate with the team.
               </p>
             </div>
           </div>
 
           <div className="forums-grid">
             {Object.entries(channels).map(([key, info]) => {
-              const postCount = forumPosts[key]?.length || 0;
+              const topPosts = forumPosts[key] || [];
+              let totalMessages = topPosts.length;
+              topPosts.forEach(p => {
+                if (p.replies) totalMessages += p.replies.length;
+              });
+
               return (
                 <div key={key} className="forum-channel">
                   <div className="channel-header">
@@ -861,11 +842,11 @@ function App() {
                       <span className="channel-big-icon">{info.icon}</span>
                       <h3>{info.title}</h3>
                     </div>
-                    <span className="channel-count">{postCount} {postCount === 1 ? "post" : "posts"}</span>
+                    <span className="channel-count">{totalMessages} {totalMessages === 1 ? "msg" : "msgs"}</span>
                   </div>
                   <p>{info.description}</p>
                   <button className="secondary-button channel-cta-btn" onClick={() => handleOpenChannel(key)}>
-                    OPEN CHANNEL →
+                    ENTER CHANNEL →
                   </button>
                 </div>
               );
@@ -874,27 +855,32 @@ function App() {
         </section>
 
         {/* QUICK SUGGESTIONS & FEEDBACK CALLOUT */}
-        <section className="section community" id="suggestions">
+        <section className="section community" id="feedback">
           <div className="community-box">
             <span className="section-label">DIRECT TO DEVS</span>
             <h2>Have a feature idea?</h2>
             <p>
               Suggest new hangout areas, activities, sound effects, or lighting styles to make the atmosphere even more nostalgic.
             </p>
-            <button className="primary-button" onClick={() => handleOpenChannel("feedback")}>
+            <button className="primary-button" onClick={() => handleOpenChannel("suggestions")}>
               💡 SUBMIT AN IDEA
             </button>
           </div>
 
-          <div className="community-box" id="feedback">
-            <span className="section-label">COMMUNITY FIRST</span>
-            <h2>Help us squash bugs.</h2>
+          <div className="community-box">
+            <span className="section-label">COMMUNITY SAFETY</span>
+            <h2>Report an exploiter or bug.</h2>
             <p>
-              Encountered a glitch on mobile or PC? Report it to our bug tracker and we'll patch it in the next update.
+              Keep the community clean and fun. Report rule breakers, exploiters, or game bugs directly to the moderation team.
             </p>
-            <button className="secondary-button" onClick={() => handleOpenChannel("bugs")}>
-              🐛 REPORT A BUG
-            </button>
+            <div className="community-box-actions">
+              <button className="secondary-button" onClick={() => handleOpenChannel("reports")}>
+                🚨 FILE REPORT
+              </button>
+              <button className="outline-button" onClick={() => handleOpenChannel("bugs")}>
+                🐛 REPORT BUG
+              </button>
+            </div>
           </div>
         </section>
 
@@ -905,6 +891,7 @@ function App() {
             <p>
               • <strong>Owner & Developer:</strong> Aadi<br />
               • <strong>Co-Developer:</strong> Kaniel<br />
+              • <strong>Manager:</strong> Venix<br />
               • <strong>GFX & Thumbnails:</strong> Fluffy<br />
               • <strong>Studio:</strong> Dios Productions
             </p>
@@ -975,6 +962,18 @@ function App() {
             <div className="forum-posts-container">
               {/* POST FORM */}
               <form className="post-form" onSubmit={handlePostSubmit}>
+                {replyingTo && (
+                  <div className="replying-banner">
+                    <div className="replying-info">
+                      <span className="reply-indicator-icon">↳</span>
+                      <span>Replying to <strong>@{replyingTo.author}</strong>: <em>"{replyingTo.snippet}"</em></span>
+                    </div>
+                    <button type="button" className="cancel-reply-btn" onClick={handleCancelReply} title="Cancel reply">
+                      ✕ Cancel
+                    </button>
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label className="form-label">Your Username</label>
                   <div className="form-input-wrapper">
@@ -991,10 +990,17 @@ function App() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Message Content</label>
+                  <label className="form-label">
+                    {replyingTo ? `Your Reply to @${replyingTo.author}` : "Message Content"}
+                  </label>
                   <div className="form-input-wrapper">
                     <textarea
-                      placeholder={`Write in ${channels[selectedChannel].title}...`}
+                      ref={textareaRef}
+                      placeholder={
+                        replyingTo
+                          ? `Write a reply to @${replyingTo.author}...`
+                          : `Write in ${channels[selectedChannel].title}...`
+                      }
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
                       maxLength={MAX_CONTENT_LENGTH}
@@ -1037,7 +1043,7 @@ function App() {
                     className="primary-button submit-post-btn"
                     disabled={!userName.trim() || !postContent.trim()}
                   >
-                    POST TO CHANNEL ✨
+                    {replyingTo ? "POST REPLY 💬" : "POST MESSAGE ✨"}
                   </button>
                 </div>
 
@@ -1047,7 +1053,7 @@ function App() {
               {/* POST LIST & CONTROLS */}
               <div className="posts-header-row">
                 <h4>
-                  Channel Feed <span>({displayedPosts.length})</span>
+                  Channel Feed <span>({displayedPosts.length} threads)</span>
                 </h4>
                 <div className="sort-buttons">
                   <button
@@ -1074,34 +1080,96 @@ function App() {
                   </div>
                 ) : (
                   displayedPosts.map((post) => (
-                    <div key={post.id} className="forum-post">
-                      <div className="post-header">
-                        <div className="author-info">
-                          <span className="author-avatar">{post.author.charAt(0).toUpperCase()}</span>
-                          <strong className="post-author">{post.author}</strong>
+                    <div key={post.id} className="forum-post-thread">
+                      {/* MAIN POST CARD */}
+                      <div className="forum-post">
+                        <div className="post-header">
+                          <div className="author-info">
+                            <span className="author-avatar">{post.author.charAt(0).toUpperCase()}</span>
+                            <strong className="post-author">{post.author}</strong>
+                          </div>
+                          <span className="post-time">{post.timestamp}</span>
                         </div>
-                        <span className="post-time">{post.timestamp}</span>
+
+                        <p className="post-content">{post.content}</p>
+
+                        {post.image && (
+                          <div className="post-image-wrapper" onClick={() => setLightboxImage(post.image)}>
+                            <img src={post.image} alt="Forum attachment" className="post-image" loading="lazy" />
+                            <span className="image-zoom-hint">🔍 Click to enlarge</span>
+                          </div>
+                        )}
+
+                        <div className="post-actions">
+                          <button
+                            className={`like-btn ${post.liked ? "liked" : ""}`}
+                            onClick={() => handleLike(selectedChannel, post.id)}
+                            aria-label={post.liked ? "Unlike post" : "Like post"}
+                          >
+                            <span className="heart-icon">{post.liked ? "❤️" : "🤍"}</span>
+                            <span className="like-counter">{post.likes}</span>
+                          </button>
+
+                          <button
+                            className="reply-action-btn"
+                            onClick={() => handleStartReply(post)}
+                          >
+                            💬 Reply
+                          </button>
+
+                          {post.replies && post.replies.length > 0 && (
+                            <button
+                              className="toggle-replies-btn"
+                              onClick={() => toggleReplies(post.id)}
+                            >
+                              {expandedReplies[post.id]
+                                ? `▲ Hide ${post.replies.length} ${post.replies.length === 1 ? 'reply' : 'replies'}`
+                                : `▼ View ${post.replies.length} ${post.replies.length === 1 ? 'reply' : 'replies'}`}
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      <p className="post-content">{post.content}</p>
+                      {/* NESTED REPLIES */}
+                      {post.replies && post.replies.length > 0 && expandedReplies[post.id] && (
+                        <div className="replies-container">
+                          {post.replies.map((reply) => (
+                            <div key={reply.id} className="reply-card">
+                              <div className="reply-header">
+                                <div className="author-info">
+                                  <span className="author-avatar reply-avatar">{reply.author.charAt(0).toUpperCase()}</span>
+                                  <strong className="post-author">{reply.author}</strong>
+                                </div>
+                                <span className="post-time">{reply.timestamp}</span>
+                              </div>
 
-                      {post.image && (
-                        <div className="post-image-wrapper" onClick={() => setLightboxImage(post.image)}>
-                          <img src={post.image} alt="Forum attachment" className="post-image" loading="lazy" />
-                          <span className="image-zoom-hint">🔍 Click to enlarge</span>
+                              <p className="reply-content">{reply.content}</p>
+
+                              {reply.image && (
+                                <div className="post-image-wrapper" onClick={() => setLightboxImage(reply.image)}>
+                                  <img src={reply.image} alt="Reply attachment" className="post-image" loading="lazy" />
+                                </div>
+                              )}
+
+                              <div className="reply-actions">
+                                <button
+                                  className={`like-btn mini-like ${reply.liked ? "liked" : ""}`}
+                                  onClick={() => handleLike(selectedChannel, reply.id)}
+                                >
+                                  <span className="heart-icon">{reply.liked ? "❤️" : "🤍"}</span>
+                                  <span className="like-counter">{reply.likes}</span>
+                                </button>
+                                <button
+                                  className="reply-action-btn"
+                                  onClick={() => handleStartReply(post)}
+                                >
+                                  💬 Reply
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       )}
-
-                      <div className="post-actions">
-                        <button
-                          className={`like-btn ${post.liked ? "liked" : ""}`}
-                          onClick={() => handleLike(selectedChannel, post.id)}
-                          aria-label={post.liked ? "Unlike post" : "Like post"}
-                        >
-                          <span className="heart-icon">{post.liked ? "❤️" : "🤍"}</span>
-                          <span className="like-counter">{post.likes}</span>
-                        </button>
-                      </div>
                     </div>
                   ))
                 )}

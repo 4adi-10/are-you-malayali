@@ -114,6 +114,7 @@ public/
 
 - **Owner & Developer**: Aadi
 - **Co-Developer**: Kaniel
+- **Manager**: Venix
 - **GFX & Thumbnails**: Fluffy
 - **Studio**: Dios Productions
 

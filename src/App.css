@@ -428,7 +428,7 @@ button {
 .stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
   padding-top: 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -661,202 +661,12 @@ button {
 }
 
 /* ==========================================================================
-   SONGS SOUNDBOARD SHOWCASE
-   ========================================================================== */
-
-.songs-showcase-section {
-  background: rgba(3, 16, 10, 0.5);
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.song-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 32px;
-}
-
-.song-search-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  max-width: 600px;
-}
-
-.search-icon {
-  position: absolute;
-  left: 16px;
-  font-size: 16px;
-  opacity: 0.6;
-}
-
-.song-search-input {
-  width: 100%;
-  padding: 14px 44px 14px 46px;
-  border-radius: 12px;
-  font-size: 14px;
-  color: #e8ffee;
-  background: rgba(7, 24, 15, 0.85);
-  border: 1px solid rgba(40, 200, 120, 0.2);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.song-search-input:focus {
-  border-color: rgba(52, 211, 153, 0.6);
-  box-shadow: 0 0 15px rgba(52, 211, 153, 0.15);
-}
-
-.search-clear-btn {
-  position: absolute;
-  right: 14px;
-  color: #7fa490;
-  font-size: 14px;
-}
-
-.category-pills {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.category-pill {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #9ebdb0;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.2s ease;
-}
-
-.category-pill:hover {
-  background: rgba(30, 200, 120, 0.1);
-  color: #e8ffee;
-}
-
-.category-pill.active {
-  background: rgba(30, 200, 120, 0.2);
-  color: #6ee7b7;
-  border-color: rgba(52, 211, 153, 0.5);
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.2);
-}
-
-.songs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.song-card {
-  background: rgba(8, 26, 17, 0.7);
-  border: 1px solid rgba(30, 160, 100, 0.14);
-  border-radius: 14px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.song-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(52, 211, 153, 0.35);
-  background: rgba(11, 34, 22, 0.85);
-}
-
-.song-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.song-icon {
-  font-size: 18px;
-}
-
-.song-tag {
-  font-size: 10px;
-  font-weight: 700;
-  color: #a7f3d0;
-  background: rgba(16, 185, 129, 0.12);
-  padding: 3px 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.song-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 4px;
-}
-
-.song-movie {
-  font-size: 12.5px;
-  color: #86efac;
-  margin-bottom: 4px;
-}
-
-.song-artist {
-  font-size: 11.5px;
-  color: #7fa490;
-  margin-bottom: 16px;
-  flex-grow: 1;
-}
-
-.song-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.song-category-badge {
-  font-size: 10.5px;
-  color: #688a78;
-}
-
-.song-suggest-btn {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #6ee7b7;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(30, 200, 120, 0.08);
-  transition: all 0.2s;
-}
-
-.song-suggest-btn:hover {
-  background: rgba(30, 200, 120, 0.2);
-  transform: translateY(-1px);
-}
-
-.no-songs-found {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 50px 20px;
-  background: rgba(8, 26, 17, 0.4);
-  border-radius: 16px;
-  border: 1px dashed rgba(40, 200, 120, 0.2);
-}
-
-.no-songs-found p {
-  color: #9ebdb0;
-  font-size: 15px;
-  margin-bottom: 16px;
-}
-
-/* ==========================================================================
-   FORUMS GRID
+   FORUMS GRID (5 Channels)
    ========================================================================== */
 
 .forums-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
 }
 
@@ -894,7 +704,7 @@ button {
 }
 
 .channel-header h3 {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -952,6 +762,12 @@ button {
   font-size: 14px;
   line-height: 1.6;
   margin-bottom: 26px;
+}
+
+.community-box-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* ==========================================================================
@@ -1154,6 +970,49 @@ footer {
   gap: 24px;
 }
 
+/* REPLYING BANNER */
+.replying-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(30, 200, 120, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 10px;
+  font-size: 12.5px;
+  color: #d1fae5;
+  animation: fadeIn 0.2s ease;
+}
+
+.replying-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reply-indicator-icon {
+  color: #6ee7b7;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.cancel-reply-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff8b9e;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: 0.2s;
+}
+
+.cancel-reply-btn:hover {
+  background: rgba(255, 90, 120, 0.2);
+}
+
 /* POST FORM */
 .post-form {
   background: rgba(10, 35, 22, 0.7);
@@ -1324,7 +1183,7 @@ footer {
 .posts-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .no-posts {
@@ -1352,22 +1211,29 @@ footer {
   font-size: 12px;
 }
 
-.forum-post {
-  background: rgba(10, 32, 20, 0.6);
-  border: 1px solid rgba(30, 160, 100, 0.15);
-  border-radius: 14px;
-  padding: 16px 18px;
+.forum-post-thread {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+}
+
+.forum-post {
+  background: rgba(10, 32, 20, 0.65);
+  border: 1px solid rgba(30, 160, 100, 0.16);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   transition: border-color 0.2s;
 }
 
 .forum-post:hover {
-  border-color: rgba(40, 200, 120, 0.3);
+  border-color: rgba(40, 200, 120, 0.32);
 }
 
-.post-header {
+.post-header,
+.reply-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1391,6 +1257,13 @@ footer {
   place-items: center;
 }
 
+.reply-avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 10px;
+  background: linear-gradient(135deg, #059669, #065f46);
+}
+
 .post-author {
   font-size: 13.5px;
   font-weight: 700;
@@ -1403,7 +1276,7 @@ footer {
 }
 
 .post-content {
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.6;
   color: #d1fae5;
   white-space: pre-wrap;
@@ -1441,10 +1314,11 @@ footer {
   color: #ffffff;
 }
 
-.post-actions {
+.post-actions,
+.reply-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding-top: 6px;
 }
 
@@ -1475,6 +1349,68 @@ footer {
 
 .like-counter {
   font-size: 12px;
+}
+
+.reply-action-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  transition: all 0.2s;
+}
+
+.reply-action-btn:hover {
+  background: rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+.toggle-replies-btn {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #a7f3d0;
+  padding: 6px 10px;
+  transition: opacity 0.2s;
+}
+
+.toggle-replies-btn:hover {
+  opacity: 0.8;
+}
+
+/* NESTED REPLIES */
+.replies-container {
+  margin-left: 24px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(52, 211, 153, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.2s ease;
+}
+
+.reply-card {
+  background: rgba(8, 24, 16, 0.75);
+  border: 1px solid rgba(30, 160, 100, 0.14);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reply-content {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #d1fae5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mini-like {
+  padding: 4px 8px;
+  font-size: 11px;
 }
 
 /* ==========================================================================
@@ -1603,6 +1539,11 @@ footer {
   .stat-card {
     flex: 1 1 calc(50% - 10px);
     padding: 10px 14px;
+  }
+
+  .replies-container {
+    margin-left: 12px;
+    padding-left: 10px;
   }
 
   /* MODAL BOTTOM SHEET ON PHONES */
