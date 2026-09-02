@@ -66,8 +66,8 @@ function App() {
   const [replyingTo, setReplyingTo] = useState(null); // { id, author, snippet } | null
   const [expandedReplies, setExpandedReplies] = useState({}); // { [postId]: boolean }
 
-  // Refresh Timer for player count
-  const [refreshTimer, setRefreshTimer] = useState(5);
+  // Refresh Timer for live Roblox stats (updates every 30 seconds)
+  const [refreshTimer, setRefreshTimer] = useState(30);
 
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -316,86 +316,98 @@ function App() {
     };
   }, [sessionId]);
 
-  // Fetch live Roblox player count & stats
+  // Fetch live Roblox player count & stats (CCP, visits, likes, favorites)
   useEffect(() => {
     let isMounted = true;
-    const UNIVERSE_ID = '9100306231';
 
     const fetchPlayerCount = async () => {
       try {
-        // Try Supabase Edge Function first
         let data = null;
+
+        // 1. Try our dedicated serverless API route (/api/roblox-stats) first
         try {
-          const response = await fetch(
-            `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
-            {
-              method: 'GET',
-              cache: 'no-store',
-              headers: {
-                'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-                'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-                'Pragma': 'no-cache',
-                'Cache-Control': 'no-cache, no-store, must-revalidate'
-              }
+          const apiRes = await fetch(`/api/roblox-stats?_t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
             }
-          );
-          if (response.ok) {
-            data = await response.json();
+          });
+          if (apiRes.ok) {
+            data = await apiRes.json();
           }
         } catch {
-          // Edge function failed, will try fallback
+          // Fall back if /api/roblox-stats is not reachable
         }
 
-        // Fallback: fetch Roblox API directly via proxy
-        if (!data || (!data.playerCount && !data.playing)) {
-          const proxyBase = 'https://corsproxy.io/?url=';
-          const [gamesRes, votesRes] = await Promise.all([
-            fetch(`${proxyBase}${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${UNIVERSE_ID}&_nc=${Date.now()}`)}`, { cache: 'no-store' }),
-            fetch(`${proxyBase}${encodeURIComponent(`https://games.roblox.com/v1/games/${UNIVERSE_ID}/votes?_nc=${Date.now()}`)}`, { cache: 'no-store' })
-          ]);
-
-          const gamesData = gamesRes.ok ? await gamesRes.json() : {};
-          const votesData = votesRes.ok ? await votesRes.json() : {};
-          const game = gamesData.data?.[0] || {};
-
-          data = {
-            playing: game.playing ?? 0,
-            visits: game.visits ?? 0,
-            likes: votesData.upVotes ?? votesData.upvotes ?? 0,
-            favoritedCount: game.favoritedCount ?? 0
-          };
+        // 2. Fallback: Try Supabase Edge Function
+        if (!data || (typeof data.playerCount !== 'number' && typeof data.playing !== 'number')) {
+          try {
+            const edgeRes = await fetch(
+              `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
+              {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                  'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                  'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                  'Pragma': 'no-cache',
+                  'Cache-Control': 'no-cache, no-store, must-revalidate'
+                }
+              }
+            );
+            if (edgeRes.ok) {
+              const edgeData = await edgeRes.json();
+              if (edgeData) {
+                data = edgeData;
+              }
+            }
+          } catch {
+            // Edge function fallback failed
+          }
         }
 
         if (isMounted && data) {
-          if (typeof data.playerCount === 'number') {
-            setLivePlayerCount(data.playerCount);
-          } else if (typeof data.playing === 'number') {
-            setLivePlayerCount(data.playing);
+          // CCP / Live Players
+          const activePlayers = typeof data.playerCount === 'number'
+            ? data.playerCount
+            : (typeof data.playing === 'number' ? data.playing : null);
+          if (activePlayers !== null) {
+            setLivePlayerCount(activePlayers);
           }
+
+          // Total Visits
           if (typeof data.visits === 'number' && data.visits > 0) {
             setLiveVisits(data.visits);
           }
-          if (typeof data.likes === 'number' && data.likes > 0) {
-            setLiveLikes(data.likes);
-          } else if (typeof data.upVotes === 'number' && data.upVotes > 0) {
-            setLiveLikes(data.upVotes);
+
+          // Likes / UpVotes
+          const realLikes = typeof data.likes === 'number'
+            ? data.likes
+            : (typeof data.upVotes === 'number' ? data.upVotes : (typeof data.upvotes === 'number' ? data.upvotes : null));
+          if (realLikes !== null && realLikes > 0) {
+            setLiveLikes(realLikes);
           }
-          if (typeof data.favoritedCount === 'number' && data.favoritedCount > 0) {
-            setLiveFavorites(data.favoritedCount);
+
+          // Favorites
+          const favCount = typeof data.favoritedCount === 'number' ? data.favoritedCount : null;
+          if (favCount !== null && favCount > 0) {
+            setLiveFavorites(favCount);
           }
         }
       } catch (err) {
-        console.error('Error fetching live player count:', err);
+        console.error('Error fetching live Roblox stats:', err);
       }
-      // Reset countdown timer after each fetch
+
+      // Reset countdown timer to 30s after each fetch
       if (isMounted) {
-        setRefreshTimer(5);
+        setRefreshTimer(30);
       }
     };
 
     fetchPlayerCount();
-    // Poll every 5 seconds for live real-time player count
-    const interval = setInterval(fetchPlayerCount, 5000);
+    // Poll every 30 seconds for live real-time stats
+    const interval = setInterval(fetchPlayerCount, 30000);
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -656,7 +668,7 @@ function App() {
   const handleShare = async () => {
     const shareData = {
       title: "Are You Malayali? | Roblox Community Hub",
-      text: "Join the official Are You Malayali community! Chill nature vibes, live stats & active forums.",
+      text: "Join the official Are You Malayali community! Chill nature vibes, live stats & community updates.",
       url: window.location.href
     };
 
@@ -715,8 +727,8 @@ function App() {
         <div className="nav-links">
           <a href="#home">Home</a>
           <a href="#updates">Updates</a>
-          <a href="#forums">Forums</a>
           <a href="#feedback">Feedback & Reports</a>
+          <a href="#credits">Credits</a>
         </div>
 
         <div className="nav-actions">
@@ -747,8 +759,8 @@ function App() {
         <div className={`mobile-menu ${menuOpen ? "open" : ""}`}>
           <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
           <a href="#updates" onClick={() => setMenuOpen(false)}>Updates</a>
-          <a href="#forums" onClick={() => setMenuOpen(false)}>Forums</a>
           <a href="#feedback" onClick={() => setMenuOpen(false)}>Feedback & Reports</a>
+          <a href="#credits" onClick={() => setMenuOpen(false)}>Credits & Team</a>
           <button className="mobile-share-btn" onClick={() => { setMenuOpen(false); handleShare(); }}>
             🔗 Share Community Hub
           </button>
@@ -797,8 +809,8 @@ function App() {
                 🎮 PLAY ON ROBLOX
               </a>
 
-              <a className="secondary-button" href="#forums">
-                💬 JOIN COMMUNITY FORUMS
+              <a className="secondary-button" href="#feedback">
+                💡 SUGGESTIONS & FEEDBACK
               </a>
             </div>
 
@@ -885,12 +897,12 @@ function App() {
             </article>
 
             <article className="update-card">
-              <span className="update-badge">COMMUNITY FORUMS</span>
-              <h3>Interactive Channels & Reply Threads</h3>
+              <span className="update-badge">COMMUNITY FEEDBACK</span>
+              <h3>Suggestions & Direct Reports</h3>
               <p>
-                Discuss ideas, suggest songs, report exploiters, and reply directly to other players in real-time threads.
+                Suggest new hangout spots, request Malayalam tracks, and report glitches directly to our dev team.
               </p>
-              <small>Global Sync Active</small>
+              <small>Dev Sync Active</small>
             </article>
 
             <article className="update-card">
@@ -901,45 +913,6 @@ function App() {
               </p>
               <small>Coming in Next Season</small>
             </article>
-          </div>
-        </section>
-
-        {/* COMMUNITY FORUMS SECTION */}
-        <section className="section forums" id="forums">
-          <div className="section-heading">
-            <div>
-              <span className="section-label">COMMUNITY FORUMS</span>
-              <h2>Join Live Discussions</h2>
-              <p className="section-subtext">
-                Real-time channels to chat with players, submit suggestions, report rule breakers, and collaborate with the team.
-              </p>
-            </div>
-          </div>
-
-          <div className="forums-grid">
-            {Object.entries(channels).map(([key, info]) => {
-              const topPosts = forumPosts[key] || [];
-              let totalMessages = topPosts.length;
-              topPosts.forEach(p => {
-                if (p.replies) totalMessages += p.replies.length;
-              });
-
-              return (
-                <div key={key} className="forum-channel">
-                  <div className="channel-header">
-                    <div className="channel-title-row">
-                      <span className="channel-big-icon">{info.icon}</span>
-                      <h3>{info.title}</h3>
-                    </div>
-                    <span className="channel-count">{totalMessages} {totalMessages === 1 ? "msg" : "msgs"}</span>
-                  </div>
-                  <p>{info.description}</p>
-                  <button className="secondary-button channel-cta-btn" onClick={() => handleOpenChannel(key)}>
-                    ENTER CHANNEL →
-                  </button>
-                </div>
-              );
-            })}
           </div>
         </section>
 
@@ -974,25 +947,122 @@ function App() {
         </section>
 
         {/* CREDITS & STUDIO SECTION */}
-        <section className="credits">
+        <section className="credits" id="credits">
           <div className="col">
             <h3>Credits & Team</h3>
-            <p>
-              • <strong>Owner & Developer:</strong> Aadi<br />
-              • <strong>Co-Developer:</strong> Kaniel<br />
-              • <strong>Manager:</strong> Venix<br />
-              • <strong>GFX & Thumbnails:</strong> Fluffy<br />
-              • <strong>Studio:</strong> Dios Productions
-            </p>
+            <ul className="credits-list">
+              <li className="credit-item">
+                <div className="credit-role-info">
+                  <span className="credit-role">Owner &amp; Developer</span>
+                  <span className="credit-name">Aadi</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/4adi_iiiiiiiii?igsi=MWpiajl6anBtajhnMw=="
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Aadi on Instagram"
+                >
+                  <svg className="insta-svg-icon" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                  <span>@4adi_iiiiiiiii</span>
+                </a>
+              </li>
+
+              <li className="credit-item">
+                <div className="credit-role-info">
+                  <span className="credit-role">Co-Developer</span>
+                  <span className="credit-name">Kaniel</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/thekaniel?igsi=MThpZzE2dmh3aXJtNQ=="
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Kaniel on Instagram"
+                >
+                  <svg className="insta-svg-icon" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                  <span>@thekaniel</span>
+                </a>
+              </li>
+
+              <li className="credit-item">
+                <div className="credit-role-info">
+                  <span className="credit-role">Manager</span>
+                  <span className="credit-name">Venix</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/thevenixhuh?igsi=cHNjYzNyMTR2cWhx"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Venix on Instagram"
+                >
+                  <svg className="insta-svg-icon" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                  <span>@thevenixhuh</span>
+                </a>
+              </li>
+
+              <li className="credit-item">
+                <div className="credit-role-info">
+                  <span className="credit-role">GFX &amp; Thumbnails</span>
+                  <span className="credit-name">Fluffy</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/thefluffyy7?igsi=eTk3aWJ4Ym05NXc1"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Fluffy on Instagram"
+                >
+                  <svg className="insta-svg-icon" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                  <span>@thefluffyy7</span>
+                </a>
+              </li>
+
+              <li className="credit-item">
+                <div className="credit-role-info">
+                  <span className="credit-role">Studio</span>
+                  <span className="credit-name">Dios Productions</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/dios_production?igsi=cWVxaXF5ZXhqcWYw"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Dios Productions on Instagram"
+                >
+                  <svg className="insta-svg-icon" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                  <span>@dios_production</span>
+                </a>
+              </li>
+            </ul>
           </div>
 
           <div className="col">
             <h3>Join Dios Productions</h3>
-            <p>Become part of our official Roblox studio group for exclusive in-game perks and announcements.</p>
+            <p>Become part of our official Roblox studio group and follow us on Instagram for exclusive in-game perks, sneak peeks, and announcements.</p>
             <div className="credit-links">
               <a
+                className="outline-button insta-group-btn"
+                href="https://www.instagram.com/dios_production?igsi=cWVxaXF5ZXhqcWYw"
+                target="_blank"
+                rel="noreferrer"
+              >
+                📸 Follow @dios_production on Instagram →
+              </a>
+              <a
                 className="outline-button"
-                href="https://www.roblox.com/groups/16048950"
+                href="https://www.roblox.com/share/g/571938393"
                 target="_blank"
                 rel="noreferrer"
               >

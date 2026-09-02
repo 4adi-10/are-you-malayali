@@ -819,6 +819,95 @@ button {
   line-height: 1.8;
 }
 
+.credits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.credit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(16, 40, 26, 0.45);
+  border: 1px solid rgba(46, 204, 113, 0.12);
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.credit-item:hover {
+  background: rgba(22, 54, 36, 0.6);
+  border-color: rgba(46, 204, 113, 0.3);
+  transform: translateY(-1px);
+}
+
+.credit-role-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.credit-role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #6ee7b7;
+  font-weight: 600;
+}
+
+.credit-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.credit-insta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fed7e2;
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.18), rgba(131, 58, 180, 0.18));
+  border: 1px solid rgba(225, 48, 108, 0.35);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.credit-insta-link:hover {
+  background: linear-gradient(135deg, #e1306c, #833ab4);
+  color: #ffffff;
+  border-color: transparent;
+  transform: scale(1.03);
+  box-shadow: 0 4px 14px rgba(225, 48, 108, 0.35);
+}
+
+.insta-svg-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.insta-group-btn {
+  border-color: rgba(225, 48, 108, 0.3) !important;
+  color: #fce7f3 !important;
+}
+
+.insta-group-btn:hover {
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.2), rgba(131, 58, 180, 0.2)) !important;
+  border-color: #e1306c !important;
+  color: #ffffff !important;
+}
+
 .credit-links {
   display: flex;
   flex-direction: column;

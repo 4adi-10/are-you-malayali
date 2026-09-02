@@ -112,16 +112,16 @@ public/
 
 ## Credits
 
-- **Owner & Developer**: Aadi
-- **Co-Developer**: Kaniel
-- **Manager**: Venix
-- **GFX & Thumbnails**: Fluffy
-- **Studio**: Dios Productions
+- **Owner & Developer**: Aadi ([@4adi_iiiiiiiii](https://www.instagram.com/4adi_iiiiiiiii?igsi=MWpiajl6anBtajhnMw==))
+- **Co-Developer**: Kaniel ([@thekaniel](https://www.instagram.com/thekaniel?igsi=MThpZzE2dmh3aXJtNQ==))
+- **Manager**: Venix ([@thevenixhuh](https://www.instagram.com/thevenixhuh?igsi=cHNjYzNyMTR2cWhx))
+- **GFX & Thumbnails**: Fluffy ([@thefluffyy7](https://www.instagram.com/thefluffyy7?igsi=eTk3aWJ4Ym05NXc1))
+- **Studio**: Dios Productions ([@dios_production](https://www.instagram.com/dios_production?igsi=cWVxaXF5ZXhqcWYw))
 
 ## Links
 
 - [Play on Roblox](https://www.roblox.com/games/105872949117236/Are-You-Malayali)
-- [Dios Productions](https://www.roblox.com/groups/16048950)
+- [Dios Productions Roblox Group](https://www.roblox.com/share/g/571938393)
 
 ---
 
