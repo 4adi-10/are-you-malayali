@@ -29,6 +29,7 @@ function App() {
   const [liveVisits, setLiveVisits] = useState(null);
   const [liveLikes, setLiveLikes] = useState(null);
   const [liveFavorites, setLiveFavorites] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [sessionId] = useState(() => {
     const existing = sessionStorage.getItem('aym_session_id');
     if (existing) return existing;
@@ -316,121 +317,130 @@ function App() {
     };
   }, [sessionId]);
 
-  // Fetch live Roblox player count & stats (CCP, visits, likes, favorites)
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchPlayerCount = async () => {
+  // Fetch ALL live stats (Roblox CCP, visits, likes, favorites + Hub users)
+  const fetchAllLiveStats = useCallback(async () => {
+    setIsUpdating(true);
+    try {
+      // 1. Fetch live Roblox game stats via serverless endpoint
+      let robloxData = null;
       try {
-        let data = null;
+        const apiRes = await fetch(`/api/roblox-stats?_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+        if (apiRes.ok) {
+          robloxData = await apiRes.json();
+        }
+      } catch {
+        // Fall back if /api/roblox-stats fails
+      }
 
-        // 1. Try our dedicated serverless API route (/api/roblox-stats) first
+      // 2. Fallback: Supabase Edge Function
+      if (!robloxData || (typeof robloxData.playerCount !== 'number' && typeof robloxData.playing !== 'number')) {
         try {
-          const apiRes = await fetch(`/api/roblox-stats?_t=${Date.now()}`, {
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache'
+          const edgeRes = await fetch(
+            `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
+            {
+              method: 'GET',
+              cache: 'no-store',
+              headers: {
+                'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+              }
             }
-          });
-          if (apiRes.ok) {
-            data = await apiRes.json();
+          );
+          if (edgeRes.ok) {
+            robloxData = await edgeRes.json();
           }
         } catch {
-          // Fall back if /api/roblox-stats is not reachable
+          // Edge function fallback failed
         }
-
-        // 2. Fallback: Try Supabase Edge Function
-        if (!data || (typeof data.playerCount !== 'number' && typeof data.playing !== 'number')) {
-          try {
-            const edgeRes = await fetch(
-              `https://wqvnnxjdaslngwfqoxhz.supabase.co/functions/v1/hyper-endpoint?_t=${Date.now()}`,
-              {
-                method: 'GET',
-                cache: 'no-store',
-                headers: {
-                  'apikey': 'sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-                  'Authorization': 'Bearer sb_publishable_ew8XHLNTZnHAZmjGt9UZkQ_f4gKrvQf',
-                  'Pragma': 'no-cache',
-                  'Cache-Control': 'no-cache, no-store, must-revalidate'
-                }
-              }
-            );
-            if (edgeRes.ok) {
-              const edgeData = await edgeRes.json();
-              if (edgeData) {
-                data = edgeData;
-              }
-            }
-          } catch {
-            // Edge function fallback failed
-          }
-        }
-
-        if (isMounted && data) {
-          // CCP / Live Players
-          const activePlayers = typeof data.playerCount === 'number'
-            ? data.playerCount
-            : (typeof data.playing === 'number' ? data.playing : null);
-          if (activePlayers !== null) {
-            setLivePlayerCount(activePlayers);
-          }
-
-          // Total Visits
-          if (typeof data.visits === 'number' && data.visits > 0) {
-            setLiveVisits(data.visits);
-          }
-
-          // Likes / UpVotes
-          const realLikes = typeof data.likes === 'number'
-            ? data.likes
-            : (typeof data.upVotes === 'number' ? data.upVotes : (typeof data.upvotes === 'number' ? data.upvotes : null));
-          if (realLikes !== null && realLikes > 0) {
-            setLiveLikes(realLikes);
-          }
-
-          // Favorites
-          const favCount = typeof data.favoritedCount === 'number' ? data.favoritedCount : null;
-          if (favCount !== null && favCount > 0) {
-            setLiveFavorites(favCount);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching live Roblox stats:', err);
       }
 
-      // Reset countdown timer to 30s after each fetch
-      if (isMounted) {
-        setRefreshTimer(30);
-      }
-    };
+      if (robloxData) {
+        // CCP / Active Players
+        const activePlayers = typeof robloxData.playing === 'number'
+          ? robloxData.playing
+          : (typeof robloxData.playerCount === 'number' ? robloxData.playerCount : null);
+        if (activePlayers !== null) {
+          setLivePlayerCount(activePlayers);
+        }
 
-    fetchPlayerCount();
-    // Poll every 30 seconds for live real-time stats
-    const interval = setInterval(fetchPlayerCount, 30000);
+        // Total Visits
+        if (typeof robloxData.visits === 'number' && robloxData.visits > 0) {
+          setLiveVisits(robloxData.visits);
+        }
+
+        // Likes / UpVotes
+        const realLikes = typeof robloxData.likes === 'number'
+          ? robloxData.likes
+          : (typeof robloxData.upVotes === 'number' ? robloxData.upVotes : (typeof robloxData.upvotes === 'number' ? robloxData.upvotes : null));
+        if (realLikes !== null && realLikes > 0) {
+          setLiveLikes(realLikes);
+        }
+
+        // Favorites
+        const favCount = typeof robloxData.favoritedCount === 'number' ? robloxData.favoritedCount : null;
+        if (favCount !== null && favCount > 0) {
+          setLiveFavorites(favCount);
+        }
+      }
+
+      // 3. Active users on Hub
+      try {
+        const cutoff = new Date(Date.now() - 30 * 1000).toISOString();
+        const { count } = await supabase
+          .from('active_users')
+          .select('*', { count: 'exact', head: true })
+          .gte('last_seen', cutoff);
+        setLiveUsers(Math.max(1, count || 1));
+      } catch {
+        // Presence fetch error ignored
+      }
+    } catch (err) {
+      console.error('Error fetching live stats:', err);
+    } finally {
+      setTimeout(() => {
+        setIsUpdating(false);
+      }, 600);
+    }
+  }, []);
+
+  // Unified 30-second live stats loop (ticks every second, refreshes all stats when timer reaches 1)
+  useEffect(() => {
+    // Initial fetch on mount
+    fetchAllLiveStats();
+
+    // Single master interval: counts down and triggers fetch when reaching 1s, resetting to 30s
+    const timer = setInterval(() => {
+      setRefreshTimer((prev) => {
+        if (prev <= 1) {
+          fetchAllLiveStats();
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchPlayerCount();
+        fetchAllLiveStats();
+        setRefreshTimer(30);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      isMounted = false;
-      clearInterval(interval);
+      clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, []);
-
-  // Countdown timer that ticks every second
-  useEffect(() => {
-    const tick = setInterval(() => {
-      setRefreshTimer((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(tick);
-  }, []);
+  }, [fetchAllLiveStats]);
 
   // Keyboard accessibility and body scroll lock
   useEffect(() => {
@@ -815,36 +825,73 @@ function App() {
             </div>
 
             {/* LIVE METRICS BAR */}
+            <div className="stats-header-bar">
+              <div className="stats-live-indicator">
+                <span className={`live-pulse-dot ${isUpdating ? "updating" : ""}`}></span>
+                <div className="stats-sync-text">
+                  <strong>Live Server Stats</strong>
+                  <span className="stats-sync-sub">
+                    {isUpdating ? "Syncing live data..." : `Auto-updates in ${refreshTimer}s`}
+                  </span>
+                </div>
+              </div>
+              <button
+                className={`stats-refresh-btn ${isUpdating ? "spinning" : ""}`}
+                onClick={() => {
+                  fetchAllLiveStats();
+                  setRefreshTimer(30);
+                }}
+                title="Force refresh live stats now"
+              >
+                <span>🔄</span> {isUpdating ? "Updating..." : "Refresh Now"}
+              </button>
+            </div>
+
             <div className="stats">
               <div className="stat-card">
                 <strong>200+</strong>
                 <span>Mallu Songs</span>
+                <small className="stat-card-meta">Soundboard tracks</small>
               </div>
 
               <div className="stat-card highlight-stat">
-                <strong>👥 {liveUsers !== null ? liveUsers : <span className="stat-loading">···</span>}</strong>
+                <strong className={isUpdating ? "stat-glow" : ""}>
+                  👥 {liveUsers !== null ? liveUsers : <span className="stat-loading">···</span>}
+                </strong>
                 <span>Online on Hub</span>
+                <small className="stat-card-meta">Live web visitors</small>
               </div>
 
               <div className="stat-card highlight-stat">
-                <strong>🎮 {livePlayerCount !== null ? livePlayerCount.toLocaleString() : <span className="stat-loading">···</span>}</strong>
+                <strong className={isUpdating ? "stat-glow" : ""}>
+                  🎮 {livePlayerCount !== null ? livePlayerCount.toLocaleString() : <span className="stat-loading">···</span>}
+                </strong>
                 <span>Playing in Roblox</span>
-                <small className="refresh-timer">Updates in {refreshTimer}s</small>
+                <small className="stat-card-meta">Live CCP</small>
               </div>
 
-              <div className="stat-card">
-                <strong>👣 {liveVisits !== null ? liveVisits.toLocaleString() : <span className="stat-loading">···</span>}</strong>
+              <div className="stat-card highlight-stat">
+                <strong className={isUpdating ? "stat-glow" : ""}>
+                  👣 {liveVisits !== null ? liveVisits.toLocaleString() : <span className="stat-loading">···</span>}
+                </strong>
                 <span>Total Visits</span>
+                <small className="stat-card-meta">All-time plays</small>
               </div>
 
-              <div className="stat-card">
-                <strong>👍 {liveLikes !== null ? liveLikes.toLocaleString() : <span className="stat-loading">···</span>}</strong>
+              <div className="stat-card highlight-stat">
+                <strong className={isUpdating ? "stat-glow" : ""}>
+                  👍 {liveLikes !== null ? liveLikes.toLocaleString() : <span className="stat-loading">···</span>}
+                </strong>
                 <span>Game Likes</span>
+                <small className="stat-card-meta">Player upvotes</small>
               </div>
 
-              <div className="stat-card">
-                <strong>⭐ {liveFavorites !== null ? liveFavorites.toLocaleString() : <span className="stat-loading">···</span>}</strong>
+              <div className="stat-card highlight-stat">
+                <strong className={isUpdating ? "stat-glow" : ""}>
+                  ⭐ {liveFavorites !== null ? liveFavorites.toLocaleString() : <span className="stat-loading">···</span>}
+                </strong>
                 <span>Favorites</span>
+                <small className="stat-card-meta">Favorited count</small>
               </div>
             </div>
           </div>
