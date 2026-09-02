@@ -14,6 +14,94 @@ const getTimeAgo = (date) => {
   return date.toLocaleDateString();
 };
 
+// Ambient Atmospheric Fireflies & Mist Spores VFX (60fps Canvas)
+function AmbientParticles() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let animationFrameId;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    const particleCount = Math.min(30, Math.max(16, Math.floor(window.innerWidth / 45)));
+    const particles = Array.from({ length: particleCount }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      size: Math.random() * 2.2 + 0.8,
+      speedX: (Math.random() - 0.5) * 0.35,
+      speedY: -Math.random() * 0.4 - 0.12,
+      alpha: Math.random() * 0.55 + 0.25,
+      pulseSpeed: Math.random() * 0.02 + 0.01,
+      hue: Math.random() > 0.3 ? 155 : 45, // Emerald green or subtle warm Kerala night firefly
+      phase: Math.random() * Math.PI * 2
+    }));
+
+    let isVisible = true;
+    const handleVisibility = () => {
+      isVisible = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const render = () => {
+      if (isVisible) {
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.speedX + Math.sin(p.phase) * 0.3;
+          p.y += p.speedY;
+          p.phase += p.pulseSpeed;
+
+          if (p.y < -15) {
+            p.y = height + 15;
+            p.x = Math.random() * width;
+          }
+          if (p.x < -15) p.x = width + 15;
+          if (p.x > width + 15) p.x = -15;
+
+          const currentAlpha = Math.max(0.06, p.alpha * (0.6 + Math.sin(p.phase) * 0.4));
+          const color = p.hue === 155
+            ? `rgba(110, 231, 183, ${currentAlpha})`
+            : `rgba(250, 204, 21, ${currentAlpha * 0.85})`;
+          const glow = p.hue === 155
+            ? `rgba(52, 211, 153, ${currentAlpha * 0.45})`
+            : `rgba(234, 179, 8, ${currentAlpha * 0.35})`;
+
+          ctx.beginPath();
+          const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3.5);
+          gradient.addColorStop(0, color);
+          gradient.addColorStop(0.5, glow);
+          gradient.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = gradient;
+          ctx.arc(p.x, p.y, p.size * 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="ambient-particles-canvas" aria-hidden="true" />;
+}
+
 function App() {
   const [forumPosts, setForumPosts] = useState({
     suggestions: [],
@@ -715,6 +803,9 @@ function App() {
 
   return (
     <div className="app">
+      {/* AMBIENT FIREFLY PARTICLES VFX */}
+      <AmbientParticles />
+
       {/* TOAST CONTAINER */}
       <div className="toast-container">
         {toasts.map((toast) => (
