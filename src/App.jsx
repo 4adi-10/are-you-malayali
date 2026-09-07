@@ -1039,29 +1039,29 @@ function App() {
           <div className="update-grid">
             <article className="update-card featured">
               <span className="update-badge">LATEST PATCH</span>
-              <h3>New In-Game Soundboard & Hangouts</h3>
+              <h3>Medellin Mansion & Bug Fixes</h3>
               <p>
-                Expanded soundboard featuring trending Malayalam tracks, classroom chill zone, and realistic rain acoustics.
+                Added the new Medellin Mansion map, overall performance optimizations, and general bug fixes.
               </p>
               <small>Live Now on Roblox</small>
             </article>
 
             <article className="update-card">
               <span className="update-badge">COMMUNITY FEEDBACK</span>
-              <h3>Suggestions & Direct Reports</h3>
+              <h3>Bug Fixes & Direct Reports</h3>
               <p>
-                Suggest new hangout spots, request Malayalam tracks, and report glitches directly to our dev team.
+                Report glitches or suggest features directly to our dev team.
               </p>
               <small>Dev Sync Active</small>
             </article>
 
             <article className="update-card">
               <span className="update-badge">IN DEVELOPMENT</span>
-              <h3>Scenic Backwaters & Tea Stall Expansion</h3>
+              <h3>Underwater Realm (5th Realm)</h3>
               <p>
-                New cozy Kerala backwaters area, interactive tea stall (Thattukada), and scenic sunset viewpoint.
+                Developing the brand new 5th realm featuring an interactive underwater zone.
               </p>
-              <small>Coming in Next Season</small>
+              <small>Coming Soon</small>
             </article>
           </div>
         </section>
