@@ -1202,7 +1202,7 @@ function App() {
               </li>
 
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/gaming-lokam.svg" alt="Gaming Lokam Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/gaming-lokam.jpg" alt="Gaming Lokam Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Collaboration</span>
                   <span className="credit-name">Gaming Lokam</span>
