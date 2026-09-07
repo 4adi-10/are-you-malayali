@@ -42,7 +42,7 @@ function AmbientParticles() {
       speedY: -Math.random() * 0.4 - 0.12,
       alpha: Math.random() * 0.55 + 0.25,
       pulseSpeed: Math.random() * 0.02 + 0.01,
-      hue: Math.random() > 0.3 ? 155 : 45, // Emerald green or subtle warm Kerala night firefly
+      hue: Math.random() > 0.4 ? 'emerald' : 'white', // Electric emerald green or frosted white stardust
       phase: Math.random() * Math.PI * 2
     }));
 
@@ -70,12 +70,12 @@ function AmbientParticles() {
           if (p.x > width + 15) p.x = -15;
 
           const currentAlpha = Math.max(0.06, p.alpha * (0.6 + Math.sin(p.phase) * 0.4));
-          const color = p.hue === 155
-            ? `rgba(110, 231, 183, ${currentAlpha})`
-            : `rgba(250, 204, 21, ${currentAlpha * 0.85})`;
-          const glow = p.hue === 155
-            ? `rgba(52, 211, 153, ${currentAlpha * 0.45})`
-            : `rgba(234, 179, 8, ${currentAlpha * 0.35})`;
+          const color = p.hue === 'emerald'
+            ? `rgba(0, 255, 135, ${currentAlpha})`
+            : `rgba(255, 255, 255, ${currentAlpha * 0.95})`;
+          const glow = p.hue === 'emerald'
+            ? `rgba(16, 185, 129, ${currentAlpha * 0.5})`
+            : `rgba(255, 255, 255, ${currentAlpha * 0.4})`;
 
           ctx.beginPath();
           const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3.5);
@@ -501,8 +501,10 @@ function App() {
 
   // Unified 30-second live stats loop (ticks every second, refreshes all stats when timer reaches 1)
   useEffect(() => {
-    // Initial fetch on mount
-    fetchAllLiveStats();
+    // Initial fetch on mount scheduled asynchronously
+    const initialFetchTimeout = setTimeout(() => {
+      fetchAllLiveStats();
+    }, 0);
 
     // Single master interval: counts down and triggers fetch when reaching 1s, resetting to 30s
     const timer = setInterval(() => {
@@ -525,6 +527,7 @@ function App() {
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
+      clearTimeout(initialFetchTimeout);
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
@@ -803,6 +806,15 @@ function App() {
 
   return (
     <div className="app">
+      {/* ANIMATED GLASS AURORA & GLOW ORBS BACKGROUND */}
+      <div className="animated-bg-aurora" aria-hidden="true">
+        <div className="aurora-orb orb-emerald-1"></div>
+        <div className="aurora-orb orb-mint-2"></div>
+        <div className="aurora-orb orb-white-3"></div>
+        <div className="aurora-orb orb-emerald-4"></div>
+        <div className="aurora-grid-overlay"></div>
+      </div>
+
       {/* AMBIENT FIREFLY PARTICLES VFX */}
       <AmbientParticles />
 
