@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap');
 
 /* ============================================================
    DESIGN TOKENS — GLASSMORHIC GREEN, BLACK & WHITE
@@ -61,11 +61,13 @@ html {
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   background: var(--black-deep);
   color: var(--white-pure);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  font-size: 16.5px;
+  letter-spacing: 0.3px;
 }
 
 ::selection {
@@ -416,7 +418,7 @@ button {
 
 .logo strong {
   display: block;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.4px;
@@ -769,7 +771,7 @@ button {
 }
 
 .hero h1 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: clamp(44px, 5.8vw, 74px);
   font-weight: 900;
   line-height: 1.03;
@@ -968,7 +970,7 @@ button {
 }
 
 .stat-card strong {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 21px;
   font-weight: 800;
   color: var(--white-pure);
@@ -1104,7 +1106,7 @@ button {
 }
 
 .game-card h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 27px;
   font-weight: 800;
   margin-bottom: 6px;
@@ -1157,7 +1159,7 @@ button {
 }
 
 .section-heading h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 900;
   letter-spacing: -1.6px;
@@ -1237,7 +1239,7 @@ button {
 }
 
 .update-card h3 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 20px;
   font-weight: 800;
   margin-bottom: 12px;
@@ -1302,7 +1304,7 @@ button {
 }
 
 .community-box h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 28px;
   font-weight: 900;
   margin-bottom: 12px;
@@ -1352,7 +1354,7 @@ button {
 }
 
 .credits h3 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 22px;
   font-weight: 800;
   margin-bottom: 18px;
@@ -1583,7 +1585,7 @@ footer {
 }
 
 .modal-title-area h2 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Indie Flower', cursive, sans-serif;
   font-size: 23px;
   font-weight: 800;
   margin-bottom: 4px;
