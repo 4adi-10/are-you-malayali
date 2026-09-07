@@ -1142,7 +1142,7 @@ function App() {
               </li>
 
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/venix.svg" alt="Venix's Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/venix-avatar.svg" alt="Venix avatar" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Manager</span>
                   <span className="credit-name">Venix</span>
