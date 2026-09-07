@@ -1399,8 +1399,21 @@ button {
   transform: translateY(-1px);
 }
 
+.credit-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid rgba(225, 48, 108, 0.55);
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.3), rgba(131, 58, 180, 0.3));
+  box-shadow: 0 0 14px rgba(225, 48, 108, 0.2);
+}
+
 .credit-role-info {
   display: flex;
+  flex: 1;
+  min-width: 130px;
   flex-direction: column;
   gap: 2px;
 }

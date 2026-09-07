@@ -1102,6 +1102,7 @@ function App() {
             <h3>Credits & Team</h3>
             <ul className="credits-list">
               <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/4adi_iiiiiiiii" alt="Aadi's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Owner &amp; Developer</span>
                   <span className="credit-name">Aadi</span>
@@ -1121,6 +1122,7 @@ function App() {
               </li>
 
               <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/thekaniel" alt="Kaniel's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Co-Developer</span>
                   <span className="credit-name">Kaniel</span>
@@ -1140,6 +1142,7 @@ function App() {
               </li>
 
               <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/thevenixhuh" alt="Venix's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Manager</span>
                   <span className="credit-name">Venix</span>
@@ -1159,6 +1162,7 @@ function App() {
               </li>
 
               <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/thefluffyy7" alt="Fluffy's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">GFX &amp; Thumbnails</span>
                   <span className="credit-name">Fluffy</span>
@@ -1178,6 +1182,7 @@ function App() {
               </li>
 
               <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/dios_production" alt="Dios Productions Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Studio</span>
                   <span className="credit-name">Dios Productions</span>
@@ -1193,6 +1198,23 @@ function App() {
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                   </svg>
                   <span>@dios_production</span>
+                </a>
+              </li>
+
+              <li className="credit-item">
+                <img className="credit-avatar" src="https://unavatar.io/instagram/gaminglokam37" alt="Gaming Lokam Instagram profile" loading="lazy" />
+                <div className="credit-role-info">
+                  <span className="credit-role">Collaboration</span>
+                  <span className="credit-name">Gaming Lokam</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/gaminglokam37?stkn=MXZpZW5tc3l4bXpsdQ=="
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Gaming Lokam on Instagram"
+                >
+                  📸 <span>@gaminglokam37</span>
                 </a>
               </li>
             </ul>
