@@ -1217,6 +1217,23 @@ function App() {
                   📸 <span>@gaminglokam37</span>
                 </a>
               </li>
+
+              <li className="credit-item">
+                <img className="credit-avatar" src="/credits/medellin.jpg" alt="Medellin Instagram profile" loading="lazy" />
+                <div className="credit-role-info">
+                  <span className="credit-role">Family</span>
+                  <span className="credit-name">Medellin</span>
+                </div>
+                <a
+                  className="credit-insta-link"
+                  href="https://www.instagram.com/pvblo.szn?stkn=MXVna2o3ZXpvbG9pag%3D%3D&utm_source=qr"
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Medellin on Instagram"
+                >
+                  📸 <span>@pvblo.szn</span>
+                </a>
+              </li>
             </ul>
           </div>
 
