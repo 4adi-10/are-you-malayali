@@ -1102,7 +1102,7 @@ function App() {
             <h3>Credits & Team</h3>
             <ul className="credits-list">
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/aadi.svg" alt="Aadi's Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/aadi.jpg" alt="Aadi's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Owner &amp; Developer</span>
                   <span className="credit-name">Aadi</span>
@@ -1122,7 +1122,7 @@ function App() {
               </li>
 
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/kaniel.svg" alt="Kaniel's Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/kaniel.jpg" alt="Kaniel's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Co-Developer</span>
                   <span className="credit-name">Kaniel</span>
@@ -1162,7 +1162,7 @@ function App() {
               </li>
 
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/fluffy.svg" alt="Fluffy's Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/fluffy.jpg" alt="Fluffy's Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">GFX &amp; Thumbnails</span>
                   <span className="credit-name">Fluffy</span>
@@ -1182,7 +1182,7 @@ function App() {
               </li>
 
               <li className="credit-item">
-                <img className="credit-avatar" src="/credits/dios.svg" alt="Dios Productions Instagram profile" loading="lazy" />
+                <img className="credit-avatar" src="/credits/dios.jpg" alt="Dios Productions Instagram profile" loading="lazy" />
                 <div className="credit-role-info">
                   <span className="credit-role">Studio</span>
                   <span className="credit-name">Dios Productions</span>
