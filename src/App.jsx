@@ -1257,6 +1257,18 @@ function App() {
             </div>
           </div>
         </section>
+
+        {/* FINAL CALL TO ACTION */}
+        <section className="final-cta" aria-labelledby="final-cta-title">
+          <div className="final-cta-orbit" aria-hidden="true"></div>
+          <span className="section-label">YOUR NEXT ESCAPE</span>
+          <h2 id="final-cta-title">Come for the vibes.<br /><span>Stay for the community.</span></h2>
+          <p>Jump into the world, bring your friends, and help us shape the next chapter of Are You Malayali?</p>
+          <div className="final-cta-actions">
+            <a className="primary-button" href="https://www.roblox.com/games/105872949117236/Are-You-Malayali" target="_blank" rel="noreferrer">🎮 ENTER THE WORLD <span>↗</span></a>
+            <a className="secondary-button" href="#home">BACK TO TOP ↑</a>
+          </div>
+        </section>
       </main>
 
       {/* FOOTER */}
