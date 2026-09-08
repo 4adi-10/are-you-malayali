@@ -14,7 +14,7 @@ const getTimeAgo = (date) => {
   return date.toLocaleDateString();
 };
 
-// Ambient Atmospheric Fireflies & Mist Spores VFX (60fps Canvas)
+// Interactive atmospheric VFX: drifting fireflies, constellation links, and a magnetic cursor field.
 function AmbientParticles() {
   const canvasRef = useRef(null);
 
@@ -23,80 +23,66 @@ function AmbientParticles() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     let animationFrameId;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    const particleCount = Math.min(30, Math.max(16, Math.floor(window.innerWidth / 45)));
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const pointer = { x: width / 2, y: height / 2, active: false };
+    const particleCount = Math.min(70, Math.max(34, Math.floor(window.innerWidth / 20)));
     const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      size: Math.random() * 2.2 + 0.8,
-      speedX: (Math.random() - 0.5) * 0.35,
-      speedY: -Math.random() * 0.4 - 0.12,
-      alpha: Math.random() * 0.55 + 0.25,
-      pulseSpeed: Math.random() * 0.02 + 0.01,
-      hue: Math.random() > 0.4 ? 'emerald' : 'white', // Electric emerald green or frosted white stardust
-      phase: Math.random() * Math.PI * 2
+      x: Math.random() * width, y: Math.random() * height,
+      size: Math.random() * 2.8 + 0.7, depth: Math.random() * 0.8 + 0.35,
+      speedX: (Math.random() - 0.5) * 0.22, speedY: -Math.random() * 0.28 - 0.04,
+      alpha: Math.random() * 0.6 + 0.2, phase: Math.random() * Math.PI * 2,
+      hue: Math.random() > 0.18 ? "emerald" : "white"
     }));
 
-    let isVisible = true;
-    const handleVisibility = () => {
-      isVisible = document.visibilityState === "visible";
+    const resize = () => {
+      width = window.innerWidth; height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = width * dpr; canvas.height = height * dpr;
+      canvas.style.width = `${width}px`; canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    document.addEventListener("visibilitychange", handleVisibility);
+    const move = (event) => { pointer.x = event.clientX; pointer.y = event.clientY; pointer.active = true; };
+    const leave = () => { pointer.active = false; };
+    const visibility = () => { if (document.visibilityState === "hidden") pointer.active = false; };
+    resize();
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerleave", leave);
+    document.addEventListener("visibilitychange", visibility);
 
     const render = () => {
-      if (isVisible) {
-        ctx.clearRect(0, 0, width, height);
-
-        for (let i = 0; i < particles.length; i++) {
-          const p = particles[i];
-          p.x += p.speedX + Math.sin(p.phase) * 0.3;
-          p.y += p.speedY;
-          p.phase += p.pulseSpeed;
-
-          if (p.y < -15) {
-            p.y = height + 15;
-            p.x = Math.random() * width;
-          }
-          if (p.x < -15) p.x = width + 15;
-          if (p.x > width + 15) p.x = -15;
-
-          const currentAlpha = Math.max(0.06, p.alpha * (0.6 + Math.sin(p.phase) * 0.4));
-          const color = p.hue === 'emerald'
-            ? `rgba(0, 255, 135, ${currentAlpha})`
-            : `rgba(255, 255, 255, ${currentAlpha * 0.95})`;
-          const glow = p.hue === 'emerald'
-            ? `rgba(16, 185, 129, ${currentAlpha * 0.5})`
-            : `rgba(255, 255, 255, ${currentAlpha * 0.4})`;
-
-          ctx.beginPath();
-          const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3.5);
-          gradient.addColorStop(0, color);
-          gradient.addColorStop(0.5, glow);
-          gradient.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = gradient;
-          ctx.arc(p.x, p.y, p.size * 3.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      ctx.clearRect(0, 0, width, height);
+      for (const p of particles) {
+        const dx = pointer.x - p.x; const dy = pointer.y - p.y;
+        const distance = Math.hypot(dx, dy);
+        if (pointer.active && distance < 190) { p.x -= dx / (distance + 1) * 0.32; p.y -= dy / (distance + 1) * 0.32; }
+        p.x += p.speedX + Math.sin(p.phase) * 0.18;
+        p.y += p.speedY; p.phase += 0.018 * p.depth;
+        if (p.y < -20) { p.y = height + 20; p.x = Math.random() * width; }
+        if (p.x < -20) p.x = width + 20;
+        if (p.x > width + 20) p.x = -20;
+        const alpha = Math.max(0.04, p.alpha * (0.65 + Math.sin(p.phase) * 0.35));
+        const color = p.hue === "emerald" ? `rgba(92, 255, 181, ${alpha})` : `rgba(255,255,255,${alpha * .8})`;
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 7);
+        glow.addColorStop(0, color); glow.addColorStop(.3, color.replace(/, [^,]+\)$/, ", 0.16)")); glow.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.lineWidth = 0.7;
+      for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i]; const b = particles[j]; const distance = Math.hypot(a.x - b.x, a.y - b.y);
+        if (distance < 105) { ctx.strokeStyle = `rgba(98, 247, 176, ${(1 - distance / 105) * 0.11})`; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+      }
+      if (pointer.active) {
+        const field = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 180);
+        field.addColorStop(0, "rgba(98,247,176,.12)"); field.addColorStop(1, "rgba(98,247,176,0)");
+        ctx.fillStyle = field; ctx.beginPath(); ctx.arc(pointer.x, pointer.y, 180, 0, Math.PI * 2); ctx.fill();
       }
       animationFrameId = requestAnimationFrame(render);
     };
-
     render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
+    return () => { cancelAnimationFrame(animationFrameId); window.removeEventListener("resize", resize); window.removeEventListener("pointermove", move); window.removeEventListener("pointerleave", leave); document.removeEventListener("visibilitychange", visibility); };
   }, []);
 
   return <canvas ref={canvasRef} className="ambient-particles-canvas" aria-hidden="true" />;
