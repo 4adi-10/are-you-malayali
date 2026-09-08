@@ -812,6 +812,9 @@ function App() {
         <div className="aurora-orb orb-mint-2"></div>
         <div className="aurora-orb orb-white-3"></div>
         <div className="aurora-orb orb-emerald-4"></div>
+        <div className="forest-canopy"></div>
+        <div className="forest-mist forest-mist-one"></div>
+        <div className="forest-mist forest-mist-two"></div>
         <div className="aurora-grid-overlay"></div>
       </div>
 
