@@ -21,7 +21,8 @@ body {
   min-height: 100vh;
   background: #020604;
   color: #ffffff;
-  font-family: "Indie Flower", cursive, sans-serif;
+  /* DM Sans for body, Inter for UI, Indie Flower for display headings */
+  font-family: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;

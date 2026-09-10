@@ -14,19 +14,54 @@ const getTimeAgo = (date) => {
   return date.toLocaleDateString();
 };
 
+// Scroll progress bar — tracks page scroll position
+function ScrollProgressBar() {
+  const barRef = useRef(null);
+
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+
+    const update = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      bar.style.width = `${progress}%`;
+    };
+
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+
+  return <div ref={barRef} className="scroll-progress-bar" aria-hidden="true" />;
+}
+
 // Interactive atmospheric VFX: drifting fireflies, constellation links, and a magnetic cursor field.
-function AmbientParticles() {
+// Respects reduced-motion preference and pauses when tab is hidden or motion is disabled.
+function AmbientParticles({ motionEnabled }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Check system reduced-motion preference
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!motionEnabled || prefersReduced) {
+      // Clear canvas and don't animate
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+
     const ctx = canvas.getContext("2d");
     let animationFrameId;
+    let paused = false;
     let width = window.innerWidth;
     let height = window.innerHeight;
     const pointer = { x: width / 2, y: height / 2, active: false };
-    const particleCount = Math.min(70, Math.max(34, Math.floor(window.innerWidth / 20)));
+    const particleCount = Math.min(65, Math.max(28, Math.floor(window.innerWidth / 22)));
     const particles = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width, y: Math.random() * height,
       size: Math.random() * 2.8 + 0.7, depth: Math.random() * 0.8 + 0.35,
@@ -44,14 +79,25 @@ function AmbientParticles() {
     };
     const move = (event) => { pointer.x = event.clientX; pointer.y = event.clientY; pointer.active = true; };
     const leave = () => { pointer.active = false; };
-    const visibility = () => { if (document.visibilityState === "hidden") pointer.active = false; };
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        paused = true;
+        pointer.active = false;
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        paused = false;
+        render();
+      }
+    };
+
     resize();
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerleave", leave);
-    document.addEventListener("visibilitychange", visibility);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     const render = () => {
+      if (paused) return;
       ctx.clearRect(0, 0, width, height);
       for (const p of particles) {
         const dx = pointer.x - p.x; const dy = pointer.y - p.y;
@@ -82,8 +128,14 @@ function AmbientParticles() {
       animationFrameId = requestAnimationFrame(render);
     };
     render();
-    return () => { cancelAnimationFrame(animationFrameId); window.removeEventListener("resize", resize); window.removeEventListener("pointermove", move); window.removeEventListener("pointerleave", leave); document.removeEventListener("visibilitychange", visibility); };
-  }, []);
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerleave", leave);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [motionEnabled]);
 
   return <canvas ref={canvasRef} className="ambient-particles-canvas" aria-hidden="true" />;
 }
@@ -96,6 +148,21 @@ function App() {
     bugs: [],
     reports: []
   });
+
+  // Motion toggle — respects system preference as default
+  const [motionEnabled, setMotionEnabled] = useState(() => {
+    const stored = localStorage.getItem("aym_motion");
+    if (stored !== null) return stored === "true";
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+
+  const toggleMotion = useCallback(() => {
+    setMotionEnabled(prev => {
+      const next = !prev;
+      try { localStorage.setItem("aym_motion", String(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   // Accurate Live Stats — null until real data fetched
   const [liveUsers, setLiveUsers] = useState(null);
@@ -791,7 +858,10 @@ function App() {
   }, [selectedChannel, forumPosts, sortBy]);
 
   return (
-    <div className="app">
+    <div className={`app${motionEnabled ? "" : " motion-disabled"}`}>
+      {/* SCROLL PROGRESS BAR */}
+      <ScrollProgressBar />
+
       {/* ANIMATED GLASS AURORA & GLOW ORBS BACKGROUND */}
       <div className="animated-bg-aurora" aria-hidden="true">
         <div className="aurora-orb orb-emerald-1"></div>
@@ -805,7 +875,7 @@ function App() {
       </div>
 
       {/* AMBIENT FIREFLY PARTICLES VFX */}
-      <AmbientParticles />
+      <AmbientParticles motionEnabled={motionEnabled} />
 
       {/* TOAST CONTAINER */}
       <div className="toast-container">
@@ -815,6 +885,18 @@ function App() {
           </div>
         ))}
       </div>
+
+      {/* MOTION TOGGLE */}
+      <button
+        className="motion-toggle"
+        onClick={toggleMotion}
+        title={motionEnabled ? "Disable animations" : "Enable animations"}
+        aria-label={motionEnabled ? "Disable animations" : "Enable animations"}
+        aria-pressed={motionEnabled}
+      >
+        <span className="motion-toggle-icon" aria-hidden="true">{motionEnabled ? "✦" : "◇"}</span>
+        {motionEnabled ? "Motion On" : "Motion Off"}
+      </button>
 
       {/* NAVBAR */}
       <nav className="navbar">
@@ -997,7 +1079,9 @@ function App() {
                 LIVE ROBLOX GAME
               </div>
 
-              <img src="/assets/ay-thumb.png" alt="Are You Malayali Roblox Game" className="game-thumb" />
+              <div className="game-thumb-wrapper">
+                <img src="/assets/ay-thumb.png" alt="Are You Malayali Roblox Game" className="game-thumb" />
+              </div>
 
               <h2>Are You Malayali?</h2>
               <p className="game-sub">Relax • Hangout • Mallu Vibes</p>
@@ -1082,6 +1166,37 @@ function App() {
                 🐛 REPORT BUG
               </button>
             </div>
+          </div>
+        </section>
+
+        {/* CHANNEL CARDS GRID */}
+        <section className="section channels-section">
+          <div className="section-heading">
+            <div>
+              <span className="section-label">COMMUNITY CHANNELS</span>
+              <h2>Join the Conversation</h2>
+              <p className="section-subtext">Five dedicated channels — share ideas, report issues, or just hang out with the community.</p>
+            </div>
+          </div>
+          <div className="channels-grid">
+            {Object.entries(channels).map(([key, ch]) => (
+              <button
+                key={key}
+                className="channel-card"
+                onClick={() => handleOpenChannel(key)}
+                aria-label={`Open ${ch.title} channel`}
+              >
+                <span className="channel-card-icon" aria-hidden="true">{ch.icon}</span>
+                <div className="channel-card-body">
+                  <strong className="channel-card-title">{ch.title.replace(/^[^\s]+\s/, "")}</strong>
+                  <p className="channel-card-desc">{ch.description}</p>
+                </div>
+                <span className="channel-card-count">
+                  {(forumPosts[key] || []).length} posts
+                </span>
+                <span className="channel-card-arrow" aria-hidden="true">→</span>
+              </button>
+            ))}
           </div>
         </section>
 
